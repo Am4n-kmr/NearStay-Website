@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, GraduationCap, Building2 } from "lucide-react";
+import { authApi } from "../lib/api";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -17,12 +19,21 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError("");
     try {
-      // TODO: replace with real API call
-      // const res = await axios.post("/api/auth/register", { ...data, role });
-      console.log("Register data:", { ...data, role });
+      const payload = {
+        fullName: data.name,
+        email: data.email,
+        password: data.password,
+        phone: data.phone || "",
+        gender: "other",
+        role: role === "owner" ? "owner" : "tenant",
+      };
+      const res = await authApi.register(payload);
+      localStorage.setItem("user", JSON.stringify(res.savedUser || res.user));
+      localStorage.setItem("token", res.token);
+      toast.success("Account created successfully!");
       navigate(role === "owner" ? "/dashboard/owner" : "/dashboard/student");
     } catch (err) {
-      setError(err?.response?.data?.error ?? "Registration failed. Try again.");
+      setError(err?.response?.data?.message ?? "Registration failed. Try again.");
     } finally {
       setIsLoading(false);
     }

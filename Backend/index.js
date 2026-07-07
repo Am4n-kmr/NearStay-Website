@@ -1,9 +1,8 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import app from "./app.js"
-import userRoutes from "./routes/userRoutes.js";
+import app from "./app.js";
 
-dotenv.config()
+dotenv.config();
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -15,10 +14,7 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-
-app.get('/', (req, res) => {
-  res.send('NearStay API is running')
-})
-
-app.use('/api/auth',userRoutes);
+app.get("/", (req, res) => {
+  res.send("NearStay API is running");
+});
 

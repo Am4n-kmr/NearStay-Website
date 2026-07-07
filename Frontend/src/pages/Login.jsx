@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, ShieldCheck, Star } from "lucide-react";
+import { authApi } from "../lib/api";
+import { toast } from "sonner";
 
 const TESTIMONIAL = {
   text: "Found my PG within 2 days. No broker fees, no hidden charges. The owner was super transparent. NearStay is the best way to find student housing in India.",
@@ -22,14 +24,17 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
     try {
-      // TODO: replace with real API call
-      // const res = await axios.post("/api/auth/login", data);
-      // localStorage.setItem("user", JSON.stringify(res.data.user));
-      // localStorage.setItem("token", res.data.token);
-      console.log("Login data:", data);
-      navigate("/dashboard/student");
+      const res = await authApi.login(data);
+      localStorage.setItem("user", JSON.stringify(res.user || res.savedUser));
+      localStorage.setItem("token", res.token);
+      const user = res.user || res.savedUser;
+      const role = user?.role || "student";
+      toast.success("Logged in successfully!");
+      if (role === "admin") navigate("/dashboard/admin");
+      else if (role === "owner") navigate("/dashboard/owner");
+      else navigate("/dashboard/student");
     } catch (err) {
-      setError(err?.response?.data?.error ?? "Invalid email or password");
+      setError(err?.response?.data?.message ?? "Invalid email or password");
     } finally {
       setIsLoading(false);
     }

@@ -9,9 +9,20 @@ import SearchPage from "./pages/Search";
 import PropertyDetailPage from "./pages/PropertyDetail";
 import NotFound from "./pages/NotFound";
 
-import StudentDashboard from "./pages/dashboard/student/Index";
-import OwnerDashboard from "./pages/dashboard/owner/Index";
-import AdminDashboard from "./pages/dashboard/admin/Index";
+import StudentDashboard from "./pages/dashboard/Student/Index";
+import StudentBookings from "./pages/dashboard/Student/Bookings";
+import StudentComplaints from "./pages/dashboard/Student/Complaints";
+import StudentMessages from "./pages/dashboard/Student/Messages";
+import StudentProfile from "./pages/dashboard/Student/Profile";
+import StudentWishlist from "./pages/dashboard/Student/Wishlist";
+
+import OwnerDashboard from "./pages/dashboard/Owner/Index";
+import OwnerBookings from "./pages/dashboard/Owner/Bookings";
+import OwnerComplaints from "./pages/dashboard/Owner/Complaints";
+import OwnerMessages from "./pages/dashboard/Owner/Messages";
+import OwnerProfile from "./pages/dashboard/Owner/Profile";
+
+import AdminDashboard from "./pages/dashboard/Admin/Index";
 
 const queryClient = new QueryClient();
 
@@ -32,15 +43,23 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/property/:id" element={<PropertyDetailPage />} />
 
-          <Route path="/dashboard/student" element={
-            <ProtectedRoute><StudentDashboard /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/owner" element={
-            <ProtectedRoute><OwnerDashboard /></ProtectedRoute>
-          } />
-          <Route path="/dashboard/admin" element={
-            <ProtectedRoute><AdminDashboard /></ProtectedRoute>
-          } />
+          {/* Student Dashboard */}
+          <Route path="/dashboard/student" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/student/bookings" element={<ProtectedRoute><StudentBookings /></ProtectedRoute>} />
+          <Route path="/dashboard/student/complaints" element={<ProtectedRoute><StudentComplaints /></ProtectedRoute>} />
+          <Route path="/dashboard/student/messages" element={<ProtectedRoute><StudentMessages /></ProtectedRoute>} />
+          <Route path="/dashboard/student/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
+          <Route path="/dashboard/student/wishlist" element={<ProtectedRoute><StudentWishlist /></ProtectedRoute>} />
+
+          {/* Owner Dashboard */}
+          <Route path="/dashboard/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/bookings" element={<ProtectedRoute><OwnerBookings /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/complaints" element={<ProtectedRoute><OwnerComplaints /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/messages" element={<ProtectedRoute><OwnerMessages /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
+
+          {/* Admin Dashboard */}
+          <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

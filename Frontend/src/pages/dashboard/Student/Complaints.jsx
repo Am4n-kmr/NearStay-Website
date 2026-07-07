@@ -3,7 +3,7 @@ import DashboardLayout from "../../../components/DashboardLayout";
 
 const COMPLAINT_TYPES = [
   { value: "fake_listing", label: "Fake Listing" },
-  { value: "misconduct", label: "Tenant Misconduct" },
+  { value: "misconduct", label: "Owner Misconduct" },
   { value: "hidden_charges", label: "Hidden Charges" },
   { value: "safety_concern", label: "Safety Concern" },
   { value: "fraud", label: "Fraud" },
@@ -19,7 +19,7 @@ const statusConfig = {
 
 const INITIAL_FORM = { type: "", title: "", description: "" };
 
-export default function OwnerComplaints() {
+export default function StudentComplaints() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
@@ -42,17 +42,31 @@ export default function OwnerComplaints() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
     setSubmitting(true);
     await new Promise((res) => setTimeout(res, 800));
     const newComplaint = {
-      id: crypto.randomUUID(), ...form, status: "open", resolution: null, createdAt: new Date().toISOString(),
+      id: crypto.randomUUID(),
+      ...form,
+      status: "open",
+      resolution: null,
+      createdAt: new Date().toISOString(),
     };
     setComplaints((prev) => [newComplaint, ...prev]);
-    setForm(INITIAL_FORM); setErrors({}); setSubmitting(false); setOpen(false);
+    setForm(INITIAL_FORM);
+    setErrors({});
+    setSubmitting(false);
+    setOpen(false);
   };
 
-  const handleCancel = () => { setOpen(false); setForm(INITIAL_FORM); setErrors({}); };
+  const handleCancel = () => {
+    setOpen(false);
+    setForm(INITIAL_FORM);
+    setErrors({});
+  };
 
   return (
     <DashboardLayout title="Complaints">
@@ -60,10 +74,12 @@ export default function OwnerComplaints() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Complaints</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Report issues with tenants or platform</p>
+            <p className="text-sm text-muted-foreground mt-0.5">Report issues with properties or owners</p>
           </div>
-          <button onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+          <button
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -71,6 +87,7 @@ export default function OwnerComplaints() {
           </button>
         </div>
 
+        {/* Modal */}
         {open && (
           <div className="fixed inset-0 z-40 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50" onClick={handleCancel} />
@@ -86,32 +103,43 @@ export default function OwnerComplaints() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Complaint type</label>
-                  <select value={form.type} onChange={(e) => handleChange("type", e.target.value)}
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background">
+                  <select
+                    value={form.type}
+                    onChange={(e) => handleChange("type", e.target.value)}
+                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+                  >
                     <option value="">Select type</option>
-                    {COMPLAINT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+                    {COMPLAINT_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
                   </select>
                   {errors.type && <p className="text-xs text-destructive">{errors.type}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Title</label>
-                  <input type="text" value={form.title} onChange={(e) => handleChange("title", e.target.value)}
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => handleChange("title", e.target.value)}
                     placeholder="Brief summary of the issue"
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background" />
+                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+                  />
                   {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Description</label>
-                  <textarea value={form.description} onChange={(e) => handleChange("description", e.target.value)}
-                    placeholder="Describe the issue in detail (min. 20 characters)" rows={4}
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none" />
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => handleChange("description", e.target.value)}
+                    placeholder="Describe the issue in detail (min. 20 characters)"
+                    rows={4}
+                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
+                  />
                   {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
                 </div>
                 <div className="flex justify-end gap-2 pt-1">
-                  <button type="button" onClick={handleCancel}
-                    className="px-4 py-2 text-sm font-medium border border-input rounded-lg hover:bg-muted transition-colors">Cancel</button>
-                  <button type="submit" disabled={submitting}
-                    className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                  <button type="button" onClick={handleCancel} className="px-4 py-2 text-sm font-medium border border-input rounded-lg hover:bg-muted transition-colors">Cancel</button>
+                  <button type="submit" disabled={submitting} className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors">
                     {submitting ? "Submitting..." : "Submit Complaint"}
                   </button>
                 </div>
@@ -120,6 +148,7 @@ export default function OwnerComplaints() {
           </div>
         )}
 
+        {/* Complaints list */}
         {complaints.length > 0 ? (
           <div className="space-y-3">
             {complaints.map((c) => {
