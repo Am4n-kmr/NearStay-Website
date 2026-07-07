@@ -112,7 +112,7 @@ export default function RegisterPage() {
           </div>
 
           <button type="submit"
-            className="w-full h-11 bg-primary text-white font-semibold text-sm rounded-lg mt-2 transition-all active:scale-[0.98] disabled:opacity-60"
+            className="w-full h-11 bg-primary text-black font-semibold text-sm rounded-lg mt-2 transition-all active:scale-[0.98] disabled:opacity-60"
             disabled={isLoading}>
             {isLoading ? "Creating account..." : "Create account"}
           </button>
