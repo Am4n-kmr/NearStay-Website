@@ -21,8 +21,12 @@ import OwnerBookings from "./pages/dashboard/Owner/Bookings";
 import OwnerComplaints from "./pages/dashboard/Owner/Complaints";
 import OwnerMessages from "./pages/dashboard/Owner/Messages";
 import OwnerProfile from "./pages/dashboard/Owner/Profile";
+import OwnerProperties from "./pages/dashboard/Owner/Properties";
+import OwnerAddProperty from "./pages/dashboard/Owner/AddProperty";
+import OwnerEditProperty from "./pages/dashboard/Owner/EditProperty";
 
 import AdminDashboard from "./pages/dashboard/Admin/Index";
+import AdminUsers from "./pages/dashboard/Admin/Users";
 
 const queryClient = new QueryClient();
 
@@ -57,9 +61,13 @@ function App() {
           <Route path="/dashboard/owner/complaints" element={<ProtectedRoute><OwnerComplaints /></ProtectedRoute>} />
           <Route path="/dashboard/owner/messages" element={<ProtectedRoute><OwnerMessages /></ProtectedRoute>} />
           <Route path="/dashboard/owner/profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/properties/new" element={<ProtectedRoute><OwnerAddProperty /></ProtectedRoute>} />
+          <Route path="/dashboard/owner/properties/:id/edit" element={<ProtectedRoute><OwnerEditProperty /></ProtectedRoute>} />
 
           {/* Admin Dashboard */}
           <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

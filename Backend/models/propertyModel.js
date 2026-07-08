@@ -84,12 +84,24 @@ const propertySchema = new mongoose.Schema(
 
     isApproved: {
       type: Boolean,
-      default: true,
+      default: false,
     },
 
     isAvailable: {
       type: Boolean,
       default: true,
+    },
+
+    reviewRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    reviewCount: {
+      type: Number,
+      default: 0,
     },
   },
   {

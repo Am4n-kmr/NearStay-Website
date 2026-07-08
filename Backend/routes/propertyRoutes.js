@@ -8,7 +8,7 @@ import {
   getOwnerProperties,
   approveProperty,
 } from "../controllers/propertyController.js";
-import authenticate from "../middleware/auth.js";
+import authenticate, { authorizeRoles } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -23,6 +23,6 @@ router.delete("/:id", authenticate, deleteProperty);
 router.get("/owner/me", authenticate, getOwnerProperties);
 
 // Admin only
-router.patch("/:id/approve", authenticate, approveProperty);
+router.patch("/:id/approve", authenticate, authorizeRoles("admin"), approveProperty);
 
 export default router;

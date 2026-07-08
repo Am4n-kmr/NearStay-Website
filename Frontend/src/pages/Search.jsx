@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Search, SlidersHorizontal, X, MapPin } from "lucide-react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { Search, SlidersHorizontal, X, MapPin, Star } from "lucide-react";
+import { propertyApi } from "../lib/api";
 
-// Skeleton placeholder for property cards
 function PropertyCardSkeleton() {
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
@@ -16,7 +16,6 @@ function PropertyCardSkeleton() {
   );
 }
 
-// Shared Navbar
 function Navbar() {
   const navigate = useNavigate();
   return (
@@ -41,36 +40,80 @@ export default function SearchPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read filters from URL
   const getFilters = () => ({
     city: searchParams.get("city") ?? "",
     q: searchParams.get("q") ?? "",
-    minBudget: searchParams.get("minBudget") ?? "",
-    maxBudget: searchParams.get("maxBudget") ?? "",
+    minRent: searchParams.get("minRent") ?? "",
+    maxRent: searchParams.get("maxRent") ?? "",
     propertyType: searchParams.get("propertyType") ?? "",
     gender: searchParams.get("gender") ?? "",
-    hasWifi: searchParams.get("hasWifi") === "true",
-    hasAC: searchParams.get("hasAC") === "true",
-    foodAvailable: searchParams.get("foodAvailable") === "true",
+    amenities: searchParams.get("amenities") ?? "",
     sortBy: searchParams.get("sortBy") ?? "",
     page: parseInt(searchParams.get("page") ?? "1", 10),
   });
 
   const urlFilters = getFilters();
 
-  // Local form state
   const [cityInput, setCityInput] = useState(urlFilters.city || urlFilters.q);
   const [propertyType, setPropertyType] = useState(urlFilters.propertyType);
   const [gender, setGender] = useState(urlFilters.gender);
-  const [hasWifi, setHasWifi] = useState(urlFilters.hasWifi);
-  const [hasAC, setHasAC] = useState(urlFilters.hasAC);
-  const [foodAvailable, setFoodAvailable] = useState(urlFilters.foodAvailable);
+  const [hasWifi, setHasWifi] = useState(urlFilters.amenities.includes("WiFi"));
+  const [hasAC, setHasAC] = useState(urlFilters.amenities.includes("AC"));
+  const [foodAvailable, setFoodAvailable] = useState(urlFilters.amenities.includes("Food"));
   const [sortBy, setSortBy] = useState(urlFilters.sortBy);
   const [budgetRange, setBudgetRange] = useState([
-    parseInt(urlFilters.minBudget || "0", 10),
-    parseInt(urlFilters.maxBudget || "25000", 10),
+    parseInt(urlFilters.minRent || "0", 10),
+    parseInt(urlFilters.maxRent || "25000", 10),
   ]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  const [properties, setProperties] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Fetch properties from API when filters change
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setIsLoading(true);
+      try {
+        const params = {};
+        if (urlFilters.city) params.city = urlFilters.city;
+        if (urlFilters.q) params.q = urlFilters.q;
+        if (urlFilters.propertyType) {
+          // Map frontend values to backend schema
+          const typeMap = { hostel: "Hostel", pg: "PG", flat: "Flat", room: "Room" };
+          params.propertyType = typeMap[urlFilters.propertyType] || urlFilters.propertyType;
+        }
+        if (urlFilters.gender) {
+          const genderMap = { male: "male", female: "female", coed: "any" };
+          params.gender = genderMap[urlFilters.gender] || urlFilters.gender;
+        }
+        if (urlFilters.minRent) params.minRent = urlFilters.minRent;
+        if (urlFilters.maxRent) params.maxRent = urlFilters.maxRent;
+        if (urlFilters.amenities) params.amenities = urlFilters.amenities;
+        if (urlFilters.sortBy) {
+          const sortMap = { newest: "newest", rating_desc: "rating_desc", rent_asc: "rent_asc", rent_desc: "rent_desc" };
+          params.sortBy = sortMap[urlFilters.sortBy] || "newest";
+        }
+        params.page = urlFilters.page;
+        params.limit = 12;
+
+        const data = await propertyApi.list(params);
+        setProperties(data.properties || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+      } catch (err) {
+        console.error("Search error:", err);
+        setProperties([]);
+        setTotal(0);
+        setTotalPages(1);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProperties();
+  }, [searchParams.toString()]);
 
   // Sync form state when URL changes
   useEffect(() => {
@@ -78,21 +121,15 @@ export default function SearchPage() {
     setCityInput(f.city || f.q);
     setPropertyType(f.propertyType);
     setGender(f.gender);
-    setHasWifi(f.hasWifi);
-    setHasAC(f.hasAC);
-    setFoodAvailable(f.foodAvailable);
+    setHasWifi(f.amenities.includes("WiFi"));
+    setHasAC(f.amenities.includes("AC"));
+    setFoodAvailable(f.amenities.includes("Food"));
     setSortBy(f.sortBy);
     setBudgetRange([
-      parseInt(f.minBudget || "0", 10),
-      parseInt(f.maxBudget || "25000", 10),
+      parseInt(f.minRent || "0", 10),
+      parseInt(f.maxRent || "25000", 10),
     ]);
   }, [searchParams.toString()]);
-
-  // TODO: replace with real API call when backend is ready
-  const properties = [];
-  const isLoading = false;
-  const total = 0;
-  const totalPages = 1;
 
   const applyFilters = (overrides = {}) => {
     const p = new URLSearchParams();
@@ -102,18 +139,23 @@ export default function SearchPage() {
     if (pt) p.set("propertyType", pt);
     const g = overrides.gender ?? gender;
     if (g) p.set("gender", g);
+
+    // Build amenities list
+    const amenitiesList = [];
     const wifi = overrides.hasWifi ?? hasWifi;
-    if (wifi) p.set("hasWifi", "true");
+    if (wifi) amenitiesList.push("WiFi");
     const ac = overrides.hasAC ?? hasAC;
-    if (ac) p.set("hasAC", "true");
+    if (ac) amenitiesList.push("AC");
     const food = overrides.foodAvailable ?? foodAvailable;
-    if (food) p.set("foodAvailable", "true");
+    if (food) amenitiesList.push("Food");
+    if (amenitiesList.length > 0) p.set("amenities", amenitiesList.join(","));
+
     const sort = overrides.sortBy ?? sortBy;
     if (sort) p.set("sortBy", sort);
-    const minB = overrides.minBudget ?? (budgetRange[0] > 0 ? String(budgetRange[0]) : "");
-    if (minB) p.set("minBudget", minB);
-    const maxB = overrides.maxBudget ?? (budgetRange[1] < 25000 ? String(budgetRange[1]) : "");
-    if (maxB) p.set("maxBudget", maxB);
+    const minB = overrides.minRent ?? (budgetRange[0] > 0 ? String(budgetRange[0]) : "");
+    if (minB) p.set("minRent", minB);
+    const maxB = overrides.maxRent ?? (budgetRange[1] < 25000 ? String(budgetRange[1]) : "");
+    if (maxB) p.set("maxRent", maxB);
     p.set("page", String(overrides.page ?? 1));
     setSearchParams(p);
     setMobileFiltersOpen(false);
@@ -122,7 +164,6 @@ export default function SearchPage() {
   function FiltersContent() {
     return (
       <div className="space-y-5">
-        {/* Property Type */}
         <div>
           <label className="text-sm font-semibold mb-2 block">Property Type</label>
           <select
@@ -131,14 +172,13 @@ export default function SearchPage() {
             className="w-full h-11 px-3 text-sm border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="all">Any type</option>
-            <option value="hostel">Hostel</option>
             <option value="pg">PG</option>
-            <option value="shared">Shared</option>
-            <option value="private">Private</option>
+            <option value="hostel">Hostel</option>
+            <option value="flat">Flat</option>
+            <option value="room">Room</option>
           </select>
         </div>
 
-        {/* Gender */}
         <div>
           <label className="text-sm font-semibold mb-2 block">Gender</label>
           <select
@@ -153,7 +193,6 @@ export default function SearchPage() {
           </select>
         </div>
 
-        {/* Budget */}
         <div>
           <label className="text-sm font-semibold mb-3 block">
             Budget: ₹{budgetRange[0].toLocaleString("en-IN")} – ₹{budgetRange[1].toLocaleString("en-IN")}/mo
@@ -167,7 +206,6 @@ export default function SearchPage() {
           />
         </div>
 
-        {/* Amenities */}
         <div className="space-y-3">
           <label className="text-sm font-semibold block">Amenities</label>
           {[
@@ -188,7 +226,6 @@ export default function SearchPage() {
           ))}
         </div>
 
-        {/* Sort */}
         <div>
           <label className="text-sm font-semibold mb-2 block">Sort by</label>
           <select
@@ -198,6 +235,8 @@ export default function SearchPage() {
           >
             <option value="newest">Newest first</option>
             <option value="rating_desc">Highest rated</option>
+            <option value="rent_asc">Rent: Low to High</option>
+            <option value="rent_desc">Rent: High to Low</option>
           </select>
         </div>
 
@@ -215,10 +254,8 @@ export default function SearchPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Sticky search bar */}
       <div className="border-b border-border bg-card sticky top-14 sm:top-16 z-30">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2">
-          {/* Search input */}
           <div className="flex-1 flex items-center gap-2 border border-input rounded-lg px-3 bg-background h-10 sm:h-11 min-w-0">
             <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
             <input
@@ -236,7 +273,6 @@ export default function SearchPage() {
             )}
           </div>
 
-          {/* Search button */}
           <button
             onClick={() => applyFilters()}
             className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 bg-primary text-white text-sm font-semibold rounded-lg transition-all active:scale-95 shrink-0"
@@ -245,7 +281,6 @@ export default function SearchPage() {
             <span className="hidden sm:inline">Search</span>
           </button>
 
-          {/* Mobile filter toggle */}
           <button
             onClick={() => setMobileFiltersOpen(true)}
             className="md:hidden flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 border border-input rounded-lg bg-background shrink-0"
@@ -255,7 +290,6 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Mobile filter drawer */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-50 flex justify-end md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileFiltersOpen(false)} />
@@ -272,7 +306,6 @@ export default function SearchPage() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-5 sm:py-6 flex gap-5 sm:gap-6">
-        {/* Desktop sidebar */}
         <aside className="hidden md:block w-60 shrink-0">
           <div className="sticky top-[7.5rem] bg-card border border-border rounded-xl p-4">
             <h3 className="font-semibold mb-4">Filters</h3>
@@ -280,7 +313,6 @@ export default function SearchPage() {
           </div>
         </aside>
 
-        {/* Results */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <p className="text-xs sm:text-sm text-muted-foreground">
@@ -300,9 +332,38 @@ export default function SearchPage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {properties.map((p) => (
-                  <div key={p.id} className="rounded-xl border border-border bg-card p-4">
-                    <p className="font-medium">{p.title}</p>
-                  </div>
+                  <Link
+                    key={p._id}
+                    to={`/property/${p._id}`}
+                    className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all group"
+                  >
+                    {p.images?.[0] ? (
+                      <img src={p.images[0]} alt={p.title} className="h-48 w-full object-cover" />
+                    ) : (
+                      <div className="h-48 bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                        No image
+                      </div>
+                    )}
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate">{p.title}</h3>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3 shrink-0" /> {p.city}, {p.state}
+                      </p>
+                      <div className="flex items-center justify-between pt-1">
+                        <p className="text-sm font-bold">₹{p.rent?.toLocaleString("en-IN")}/<span className="text-xs font-normal text-muted-foreground">mo</span></p>
+                        {p.reviewCount > 0 && (
+                          <div className="flex items-center gap-1 text-xs text-amber-500">
+                            <Star className="h-3 w-3 fill-current" /> {p.reviewRating} ({p.reviewCount})
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="bg-muted px-2 py-0.5 rounded">{p.propertyType}</span>
+                        <span>{p.availableRooms} room{p.availableRooms > 1 ? "s" : ""}</span>
+                        <span>{p.genderPreference === "male" ? "Boys" : p.genderPreference === "female" ? "Girls" : "Co-ed"}</span>
+                      </div>
+                    </div>
+                  </Link>
                 ))}
               </div>
               {totalPages > 1 && (

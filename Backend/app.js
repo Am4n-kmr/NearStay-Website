@@ -8,11 +8,28 @@ import visitRequestRoutes from "./routes/visitRequestRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import complaintRoutes from "./routes/complaintRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
-app.use(cors());
+// Middleware
+const corsOptions = {
+  origin: "http://localhost:5173",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+// Handle CORS preflight requests (Express 5 requires explicit OPTIONS handling)
+app.use(cors(corsOptions));
+
 app.use(express.json());
+
+// Test Route
+app.get("/", (req, res) => {
+  res.send("NearStay API is running");
+});
 
 // API Routes
 app.use("/api/auth", userRoutes);
@@ -22,5 +39,7 @@ app.use("/api/visits", visitRequestRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/admin", adminRoutes);
 
 export default app;

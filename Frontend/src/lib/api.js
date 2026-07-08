@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -95,6 +95,23 @@ export const notificationApi = {
   getUnreadCount: () => api.get("/notifications/unread-count").then((r) => r.data),
   markAsRead: (id) => api.patch(`/notifications/${id}/read`).then((r) => r.data),
   markAllAsRead: () => api.patch("/notifications/read-all").then((r) => r.data),
+};
+
+// ─── Reviews ───
+export const reviewApi = {
+  getByProperty: (propertyId) => api.get(`/reviews/property/${propertyId}`).then((r) => r.data),
+  add: (propertyId, data) => api.post(`/reviews/property/${propertyId}`, data).then((r) => r.data),
+  delete: (id) => api.delete(`/reviews/${id}`).then((r) => r.data),
+};
+
+// ─── Admin ───
+export const adminApi = {
+  getStats: () => api.get("/admin/stats").then((r) => r.data),
+  getUsers: (params) => api.get("/admin/users", { params }).then((r) => r.data),
+  toggleBlock: (userId) => api.patch(`/admin/users/${userId}/block`).then((r) => r.data),
+  changeRole: (userId, role) => api.patch(`/admin/users/${userId}/role`, { role }).then((r) => r.data),
+  getPendingProperties: () => api.get("/admin/properties/pending").then((r) => r.data),
+  moderateProperty: (id, isApproved) => api.patch(`/admin/properties/${id}/moderate`, { isApproved }).then((r) => r.data),
 };
 
 export default api;

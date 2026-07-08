@@ -18,8 +18,8 @@ export const registerUser = async (req, res) => {
       role,
     });
     const savedUser = await user.save();
-    const token = jwt.sign({ userId: savedUser._id }, SECRET_KEY, {
-      expiresIn: "1h",
+    const token = jwt.sign({ userId: savedUser._id, role: savedUser.role }, SECRET_KEY, {
+      expiresIn: "7d",
     });
     res.status(201).json({
       message: "user registered!",
@@ -44,10 +44,21 @@ export const loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "password did not matched!" });
 
-    const token = jwt.sign({ userId: user._id }, SECRET_KEY, {
-      expiresIn: "1h",
+    const token = jwt.sign({ userId: user._id, role: user.role }, SECRET_KEY, {
+      expiresIn: "7d",
     });
-    res.status(201).json({ message: "user logged in!", token: token });
+    res.status(201).json({
+      message: "user logged in!",
+      token,
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        gender: user.gender,
+        phone: user.phone,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
