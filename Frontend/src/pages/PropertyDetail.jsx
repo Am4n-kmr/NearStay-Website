@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   MapPin, Star, Wifi, Zap, UtensilsCrossed, ShieldCheck, Heart,
   BedDouble, Bath, Maximize2, ChevronLeft, ChevronRight,
-  MessageCircle, Calendar,
+  MessageCircle, Calendar, Loader2, CheckCircle2, XCircle,
 } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
+import { propertyApi, chatApi, bookingApi } from "../lib/api";
+import { useToast } from "../hooks/use-toast";
 
-const typeLabels = { hostel: "Hostel", pg: "PG", shared: "Shared", private: "Private" };
-const genderLabels = { male: "Boys", female: "Girls", coed: "Co-ed" };
-const occupancyLabels = { single: "Single", double: "Double", triple: "Triple" };
+const genderLabels = { male: "Boys", female: "Girls", any: "Co-ed" };
 
 function StarRating({ rating, max = 5, size = "sm" }) {
   return (
@@ -49,18 +52,89 @@ export default function PropertyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [imgIdx, setImgIdx] = useState(0);
-  const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [wishlisted, setWishlisted] = useState(false);
+  const [property, setProperty] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    moveInDate: "",
+    durationMonths: 1,
+    notes: "",
+  });
+  const { toast } = useToast();
 
-  // TODO: Replace with real API call when backend is ready
-  // const { data: prop, isLoading } = useGetProperty(id);
-  const isLoading = false;
-  const prop = null; // will come from backend
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const handleChat = () => navigate("/login");
-  const handleBook = () => navigate("/login");
+  useEffect(() => {
+    fetchProperty();
+  }, [id]);
 
-  const images = ["https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop"];
+  const fetchProperty = async () => {
+    setIsLoading(true);
+    try {
+      const data = await propertyApi.getById(id);
+      setProperty(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load property details",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChat = async () => {
+    if (!user._id) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const chat = await chatApi.getOrCreate({ participantId: property.owner._id, propertyId: property._id });
+      navigate(`/dashboard/${user.role === "owner" ? "student" : "owner"}/messages`);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start chat",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBook = () => {
+    if (!user._id) {
+      navigate("/login");
+      return;
+    }
+    setShowBookingForm(true);
+  };
+
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const booking = await bookingApi.create({
+        propertyId: property._id,
+        moveInDate: bookingData.moveInDate,
+        durationMonths: bookingData.durationMonths,
+        notes: bookingData.notes,
+      });
+      toast({
+        title: "Success",
+        description: "Booking request sent successfully!",
+      });
+      setShowBookingForm(false);
+      navigate(`/dashboard/student/bookings`);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create booking",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const images = property?.images?.length > 0 ? property.images : ["https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop"];
 
   if (isLoading) {
     return (
@@ -76,13 +150,12 @@ export default function PropertyDetailPage() {
     );
   }
 
-  if (!prop) {
+  if (!property) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-16 text-center text-muted-foreground">
-          <p className="mb-4">Connect your backend to see property details.</p>
-          <p className="text-sm mb-6">Property ID: <span className="font-mono bg-muted px-2 py-1 rounded">{id}</span></p>
+          <p className="mb-4">Property not found</p>
           <Link to="/search">
             <button className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold">
               Browse Properties
@@ -92,6 +165,12 @@ export default function PropertyDetailPage() {
       </div>
     );
   }
+
+  const amenities = [
+    { key: "wifi", label: "WiFi", icon: Wifi },
+    { key: "ac", label: "AC", icon: Zap },
+    { key: "food", label: "Food included", icon: UtensilsCrossed },
+  ];
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
@@ -104,7 +183,7 @@ export default function PropertyDetailPage() {
           <span>/</span>
           <Link to="/search" className="hover:text-foreground transition-colors">Search</Link>
           <span>/</span>
-          <span className="text-foreground line-clamp-1">{prop.title}</span>
+          <span className="text-foreground line-clamp-1">{property.title}</span>
         </nav>
       </div>
 
@@ -113,7 +192,7 @@ export default function PropertyDetailPage() {
         <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden mb-5 sm:mb-6 bg-muted">
           <img
             src={images[imgIdx]}
-            alt={prop.title}
+            alt={property.title}
             className="w-full h-full object-cover transition-opacity duration-200"
             onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop"; }}
           />
@@ -151,16 +230,16 @@ export default function PropertyDetailPage() {
             {/* Title & badges */}
             <div>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <h1 className="text-xl sm:text-2xl font-bold leading-tight">{prop.title}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold leading-tight">{property.title}</h1>
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
-                <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                  {typeLabels[prop.propertyType] ?? prop.propertyType}
+                <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium capitalize">
+                  {property.propertyType}
                 </span>
-                <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                  {genderLabels[prop.gender] ?? prop.gender}
+                <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground capitalize">
+                  {genderLabels[property.genderPreference] || property.genderPreference}
                 </span>
-                {prop.isVerified && (
+                {property.isApproved && (
                   <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 flex items-center gap-1">
                     <ShieldCheck className="h-3 w-3" /> Verified
                   </span>
@@ -168,111 +247,58 @@ export default function PropertyDetailPage() {
               </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                 <MapPin className="h-4 w-4 shrink-0" />
-                <span>{prop.address}, {prop.city}</span>
+                <span>{property.address}, {property.city}, {property.state}</span>
               </div>
-              {prop.rating > 0 && (
+              {property.reviewRating > 0 && (
                 <div className="flex items-center gap-2">
-                  <StarRating rating={prop.rating} size="md" />
-                  <span className="text-sm font-medium">{prop.rating.toFixed(1)}</span>
-                  <span className="text-xs text-muted-foreground">({prop.reviewCount} reviews)</span>
+                  <StarRating rating={property.reviewRating} size="md" />
+                  <span className="text-sm font-medium">{property.reviewRating.toFixed(1)}</span>
+                  <span className="text-xs text-muted-foreground">({property.reviewCount} reviews)</span>
                 </div>
               )}
             </div>
 
             {/* Amenities */}
             <div className="flex flex-wrap gap-3">
-              {prop.hasWifi && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Wifi className="h-4 w-4 text-primary" /> WiFi
-                </div>
-              )}
-              {prop.hasAC && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Zap className="h-4 w-4 text-primary" /> AC
-                </div>
-              )}
-              {prop.foodAvailable && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <UtensilsCrossed className="h-4 w-4 text-primary" /> Food included
-                </div>
-              )}
+              {amenities.map(({ key, label, icon: Icon }) => {
+                const hasAmenity = property.amenities?.includes(key) || 
+                                  (key === "wifi" && property.hasWifi) ||
+                                  (key === "ac" && property.hasAC) ||
+                                  (key === "food" && property.foodAvailable);
+                return hasAmenity ? (
+                  <div key={key} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Icon className="h-4 w-4 text-primary" /> {label}
+                  </div>
+                ) : null;
+              })}
             </div>
 
             {/* Description */}
-            {prop.description && (
+            {property.description && (
               <div>
                 <h2 className="font-semibold mb-2 text-sm sm:text-base">About this property</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{prop.description}</p>
-              </div>
-            )}
-
-            {/* Nearby colleges */}
-            {prop.nearbyColleges?.length > 0 && (
-              <div>
-                <h2 className="font-semibold mb-2 text-sm sm:text-base">Nearby colleges</h2>
-                <div className="flex flex-wrap gap-2">
-                  {prop.nearbyColleges.map((c) => (
-                    <span key={c} className="text-xs px-2 py-1 rounded-full border border-border bg-card">{c}</span>
-                  ))}
-                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{property.description}</p>
               </div>
             )}
 
             {/* House rules */}
-            {prop.houseRules && (
+            {property.houseRules && (
               <div>
                 <h2 className="font-semibold mb-2 text-sm sm:text-base">House rules</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{prop.houseRules}</p>
-              </div>
-            )}
-
-            {/* Rooms */}
-            {prop.rooms?.length > 0 && (
-              <div>
-                <h2 className="font-semibold mb-3 text-sm sm:text-base">Available rooms</h2>
-                <div className="space-y-2.5">
-                  {prop.rooms.map((room) => (
-                    <button
-                      key={room.id}
-                      onClick={() => setSelectedRoomId(room.id === selectedRoomId ? null : room.id)}
-                      disabled={!room.isAvailable}
-                      className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-150 ${
-                        selectedRoomId === room.id
-                          ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                          : "border-border bg-card hover:border-primary/40"
-                      } ${!room.isAvailable ? "opacity-50 cursor-default" : ""}`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-medium text-sm">Room {room.roomNumber}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-2">
-                            <span>{occupancyLabels[room.occupancyType]} occupancy</span>
-                            {room.hasAttachedBath && <span className="flex items-center gap-0.5"><Bath className="h-3 w-3" />Attached bath</span>}
-                            {room.hasBalcony && <span className="flex items-center gap-0.5"><Maximize2 className="h-3 w-3" />Balcony</span>}
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="font-bold text-primary text-sm">
-                            ₹{room.pricePerMonth.toLocaleString("en-IN")}
-                            <span className="text-xs font-normal text-muted-foreground">/mo</span>
-                          </div>
-                          <span className={`text-xs mt-1 inline-block px-2 py-0.5 rounded-full ${room.isAvailable ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                            {room.isAvailable ? "Available" : "Occupied"}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{property.houseRules}</p>
               </div>
             )}
 
             {/* Reviews */}
             <div>
               <h2 className="font-semibold mb-3 text-sm sm:text-base">
-                Reviews {prop.reviewCount > 0 && `(${prop.reviewCount})`}
+                Reviews {property.reviewCount > 0 && `(${property.reviewCount})`}
               </h2>
-              <p className="text-sm text-muted-foreground">No reviews yet. Be the first to review!</p>
+              {property.reviewCount > 0 ? (
+                <p className="text-sm text-muted-foreground">Reviews will be displayed here</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">No reviews yet. Be the first to review!</p>
+              )}
             </div>
           </div>
 
@@ -281,22 +307,26 @@ export default function PropertyDetailPage() {
             <div className="sticky top-24 bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
               <div>
                 <div className="text-2xl font-bold text-primary">
-                  ₹{prop.minPrice?.toLocaleString("en-IN")}
+                  ₹{property.rent?.toLocaleString("en-IN")}
                   <span className="text-sm font-normal text-muted-foreground">/month</span>
                 </div>
-                {prop.securityDeposit && (
+                {property.securityDeposit > 0 && (
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    Security deposit: ₹{prop.securityDeposit.toLocaleString("en-IN")}
+                    Security deposit: ₹{property.securityDeposit.toLocaleString("en-IN")}
                   </div>
                 )}
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {property.availableRooms} room(s) available
+                </div>
               </div>
 
               <button
                 onClick={handleBook}
-                className="w-full flex items-center justify-center gap-2 h-11 bg-primary text-white rounded-lg font-semibold text-sm transition-all active:scale-[0.98]"
+                disabled={!property.isAvailable || property.availableRooms < 1}
+                className="w-full flex items-center justify-center gap-2 h-11 bg-primary text-white rounded-lg font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Calendar className="h-4 w-4" />
-                {selectedRoomId ? "Book this room" : "Book now"}
+                {property.isAvailable && property.availableRooms > 0 ? "Book now" : "Not available"}
               </button>
 
               <button
@@ -310,34 +340,117 @@ export default function PropertyDetailPage() {
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
-                  {prop.ownerName?.charAt(0) ?? "O"}
+                  {property.owner?.fullName?.charAt(0) || "O"}
                 </div>
                 <div>
-                  <div className="text-sm font-medium">{prop.ownerName}</div>
+                  <div className="text-sm font-medium">{property.owner?.fullName || "Owner"}</div>
                   <div className="text-xs text-muted-foreground">Property owner</div>
                 </div>
               </div>
 
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
-                <ShieldCheck className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
-                <p className="text-xs text-emerald-700 font-medium">Verified property</p>
-                <p className="text-xs text-emerald-600">Reviewed by NearStay team</p>
-              </div>
+              {property.isApproved && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
+                  <p className="text-xs text-emerald-700 font-medium">Verified property</p>
+                  <p className="text-xs text-emerald-600">Reviewed by NearStay team</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {showBookingForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Book Property</h2>
+            <form onSubmit={handleBookingSubmit} className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Move-in Date</label>
+                <input
+                  type="date"
+                  required
+                  min={new Date().toISOString().split("T")[0]}
+                  value={bookingData.moveInDate}
+                  onChange={(e) => setBookingData({ ...bookingData, moveInDate: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Duration (months)</label>
+                <select
+                  value={bookingData.durationMonths}
+                  onChange={(e) => setBookingData({ ...bookingData, durationMonths: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => (
+                    <option key={month} value={month}>{month} month{month > 1 ? "s" : ""}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Monthly Rent</label>
+                <input
+                  type="text"
+                  value={`₹${property.rent?.toLocaleString("en-IN")}`}
+                  disabled
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-muted text-sm text-muted-foreground"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Security Deposit</label>
+                <input
+                  type="text"
+                  value={`₹${property.securityDeposit?.toLocaleString("en-IN")}`}
+                  disabled
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-muted text-sm text-muted-foreground"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Total Amount</label>
+                <input
+                  type="text"
+                  value={`₹${(property.rent * bookingData.durationMonths + property.securityDeposit)?.toLocaleString("en-IN")}`}
+                  disabled
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-muted text-sm text-muted-foreground font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Notes (optional)</label>
+                <textarea
+                  value={bookingData.notes}
+                  onChange={(e) => setBookingData({ ...bookingData, notes: e.target.value })}
+                  placeholder="Any special requests or notes..."
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1">Confirm Booking</Button>
+                <Button type="button" variant="outline" onClick={() => setShowBookingForm(false)}>Cancel</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Mobile bottom bar */}
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t border-border">
         <div className="px-4 py-3 flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <div className="text-lg font-bold text-primary leading-none">
-              ₹{prop.minPrice?.toLocaleString("en-IN")}
+              ₹{property.rent?.toLocaleString("en-IN")}
               <span className="text-xs font-normal text-muted-foreground">/mo</span>
             </div>
-            {prop.securityDeposit && (
-              <div className="text-xs text-muted-foreground mt-0.5">+₹{prop.securityDeposit.toLocaleString("en-IN")} deposit</div>
+            {property.securityDeposit > 0 && (
+              <div className="text-xs text-muted-foreground mt-0.5">+₹{property.securityDeposit.toLocaleString("en-IN")} deposit</div>
             )}
           </div>
           <button
@@ -348,10 +461,11 @@ export default function PropertyDetailPage() {
           </button>
           <button
             onClick={handleBook}
-            className="flex items-center gap-1.5 h-11 px-5 bg-primary text-white rounded-lg text-sm font-semibold transition-all active:scale-95"
+            disabled={!property.isAvailable || property.availableRooms < 1}
+            className="flex items-center gap-1.5 h-11 px-5 bg-primary text-white rounded-lg text-sm font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Calendar className="h-4 w-4" />
-            {selectedRoomId ? "Book Room" : "Book Now"}
+            Book Now
           </button>
         </div>
       </div>

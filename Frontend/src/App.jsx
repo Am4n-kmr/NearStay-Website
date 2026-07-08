@@ -28,6 +28,8 @@ import OwnerEditProperty from "./pages/dashboard/Owner/EditProperty";
 import AdminDashboard from "./pages/dashboard/Admin/Index";
 import AdminUsers from "./pages/dashboard/Admin/Users";
 import AdminProperties from "./pages/dashboard/Admin/Properties";
+import AdminBookings from "./pages/dashboard/Admin/Bookings";
+import AdminComplaints from "./pages/dashboard/Admin/Complaints";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,8 @@ function App() {
           <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
           <Route path="/dashboard/admin/properties" element={<ProtectedRoute><AdminProperties /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/bookings" element={<ProtectedRoute><AdminBookings /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/complaints" element={<ProtectedRoute><AdminComplaints /></ProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertTriangle, Search, Loader2, CheckCircle2, Clock, XCircle, MessageSquare } from "lucide-react";
+import { AlertTriangle, Search, Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { Skeleton } from "../../../components/ui/skeleton";
@@ -18,12 +18,12 @@ const statusConfig = {
   closed: { label: "Closed", color: "bg-gray-100 text-gray-700", icon: XCircle },
 };
 
-export default function OwnerComplaints() {
+export default function AdminComplaints() {
   const [status, setStatus] = useState("all");
   const [complaints, setComplaints] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [replyText, setReplyText] = useState("");
+  const [resolution, setResolution] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,11 +49,15 @@ export default function OwnerComplaints() {
 
   const handleUpdateStatus = async (complaintId, newStatus) => {
     try {
-      await complaintApi.updateStatus(complaintId, { status: newStatus });
+      await complaintApi.updateStatus(complaintId, { 
+        status: newStatus,
+        resolution: resolution || undefined
+      });
       toast({
         title: "Success",
         description: `Complaint marked as ${newStatus.replace("_", " ")}`,
       });
+      setResolution("");
       fetchComplaints();
       setSelectedComplaint(null);
     } catch (error) {
@@ -65,30 +69,10 @@ export default function OwnerComplaints() {
     }
   };
 
-  const handleReply = async (complaintId) => {
-    if (!replyText.trim()) return;
-    
-    try {
-      await complaintApi.replyToComplaint(complaintId, { reply: replyText });
-      toast({
-        title: "Success",
-        description: "Reply sent successfully",
-      });
-      setReplyText("");
-      fetchComplaints();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to send reply",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <DashboardLayout title="Complaints">
+    <DashboardLayout title="All Complaints">
       <div className="space-y-5">
-        <h1 className="text-xl font-bold">Complaints</h1>
+        <h1 className="text-xl font-bold">All Complaints</h1>
 
         {/* Status filter tabs */}
         <div className="flex gap-1.5 flex-wrap">
@@ -142,14 +126,14 @@ export default function OwnerComplaints() {
                         </div>
                         <h3 className="font-semibold text-sm">{c.title}</h3>
                         <p className="text-xs text-muted-foreground mt-1">
-                          By: {c.complainant?.fullName || "Student"} • {c.property?.title || "General"}
+                          By: {c.complainant?.fullName || "User"} • {c.property?.title || "General"}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{new Date(c.createdAt).toLocaleDateString("en-IN")}</span>
-                      {c.ownerReply && <span className="text-primary flex items-center gap-1"><MessageSquare className="h-3 w-3" /> Replied</span>}
+                      {c.ownerReply && <span className="text-primary">Owner replied</span>}
                     </div>
                   </div>
 
@@ -172,6 +156,19 @@ export default function OwnerComplaints() {
                         </div>
                       )}
 
+                      {/* Resolution input */}
+                      <div>
+                        <Label htmlFor={`resolution-${c._id}`}>Resolution (optional)</Label>
+                        <Textarea
+                          id={`resolution-${c._id}`}
+                          value={resolution}
+                          onChange={(e) => setResolution(e.target.value)}
+                          placeholder="Add resolution details..."
+                          rows={2}
+                          className="mt-1.5"
+                        />
+                      </div>
+
                       {/* Status update buttons */}
                       <div className="flex gap-2 flex-wrap">
                         {c.status === "open" && (
@@ -184,27 +181,24 @@ export default function OwnerComplaints() {
                             Mark Resolved
                           </Button>
                         )}
-                      </div>
-
-                      {/* Reply section */}
-                      <div className="space-y-2">
-                        <Label htmlFor={`reply-${c._id}`}>Reply to Complaint</Label>
-                        <Textarea
-                          id={`reply-${c._id}`}
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder="Write your reply..."
-                          rows={3}
-                        />
-                        <Button size="sm" onClick={() => handleReply(c._id)} disabled={!replyText.trim()}>
-                          Send Reply
-                        </Button>
+                        {(c.status === "resolved" || c.status === "in_progress") && (
+                          <Button size="sm" variant="secondary" onClick={() => handleUpdateStatus(c._id, "closed")} className="text-xs">
+                            Close
+                          </Button>
+                        )}
                       </div>
 
                       {c.resolution && (
                         <div>
                           <h4 className="text-xs font-semibold text-muted-foreground mb-1">Resolution</h4>
                           <p className="text-sm bg-muted/50 p-2 rounded-lg">{c.resolution}</p>
+                        </div>
+                      )}
+
+                      {c.ownerReply && (
+                        <div>
+                          <h4 className="text-xs font-semibold text-muted-foreground mb-1">Owner Reply</h4>
+                          <p className="text-sm bg-primary/5 p-2 rounded-lg border border-primary/10">{c.ownerReply}</p>
                         </div>
                       )}
                     </div>
@@ -217,7 +211,7 @@ export default function OwnerComplaints() {
           <div className="text-center py-16 text-muted-foreground bg-card border border-border rounded-xl">
             <AlertTriangle className="h-10 w-10 mx-auto mb-3 opacity-30" />
             <p className="font-medium">No complaints found</p>
-            <p className="text-sm mt-1">Complaints will appear here when students file them</p>
+            <p className="text-sm mt-1">Complaints will appear here</p>
           </div>
         )}
       </div>

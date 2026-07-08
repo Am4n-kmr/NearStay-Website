@@ -1,180 +1,257 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { AlertTriangle, Search, Plus, Loader2, Image as ImageIcon, X, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Button } from "../../../components/ui/button";
+import { Badge } from "../../../components/ui/badge";
+import { Skeleton } from "../../../components/ui/skeleton";
+import { Textarea } from "../../../components/ui/textarea";
+import { Input } from "../../../components/ui/input";
+import { Label } from "../../../components/ui/label";
 import DashboardLayout from "../../../components/DashboardLayout";
+import { complaintApi } from "../../../lib/api";
+import { useToast } from "../../../hooks/use-toast";
 
-const COMPLAINT_TYPES = [
-  { value: "fake_listing", label: "Fake Listing" },
-  { value: "misconduct", label: "Owner Misconduct" },
-  { value: "hidden_charges", label: "Hidden Charges" },
-  { value: "safety_concern", label: "Safety Concern" },
-  { value: "fraud", label: "Fraud" },
-  { value: "other", label: "Other" },
+const CATEGORIES = [
+  { value: "electricity", label: "Electricity" },
+  { value: "water", label: "Water" },
+  { value: "wifi", label: "WiFi" },
+  { value: "cleaning", label: "Cleaning" },
+  { value: "food", label: "Food" },
+  { value: "security", label: "Security" },
+  { value: "furniture", label: "Furniture" },
+  { value: "maintenance", label: "Maintenance" },
+  { value: "others", label: "Others" },
 ];
 
+const STATUS_TABS = ["all", "open", "in_progress", "resolved", "closed"];
+
 const statusConfig = {
-  open: { label: "Open", color: "bg-amber-100 text-amber-700" },
-  investigating: { label: "Investigating", color: "bg-blue-100 text-blue-700" },
-  resolved: { label: "Resolved", color: "bg-emerald-100 text-emerald-700" },
-  dismissed: { label: "Dismissed", color: "bg-gray-100 text-gray-600" },
+  open: { label: "Open", color: "bg-red-100 text-red-700", icon: AlertTriangle },
+  in_progress: { label: "In Progress", color: "bg-amber-100 text-amber-700", icon: Clock },
+  resolved: { label: "Resolved", color: "bg-green-100 text-green-700", icon: CheckCircle2 },
+  closed: { label: "Closed", color: "bg-gray-100 text-gray-700", icon: XCircle },
 };
 
-const INITIAL_FORM = { type: "", title: "", description: "" };
-
 export default function StudentComplaints() {
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState("all");
   const [complaints, setComplaints] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const { toast } = useToast();
 
-  const validate = () => {
-    const errs = {};
-    if (!form.type) errs.type = "Please select a type";
-    if (form.title.length < 5) errs.title = "Title must be at least 5 characters";
-    if (form.description.length < 20) errs.description = "Description must be at least 20 characters";
-    return errs;
-  };
+  const [formData, setFormData] = useState({
+    category: "electricity",
+    title: "",
+    description: "",
+    propertyId: "",
+    images: [],
+  });
 
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  useEffect(() => {
+    fetchComplaints();
+  }, [status]);
+
+  const fetchComplaints = async () => {
+    setIsLoading(true);
+    try {
+      const params = status !== "all" ? { status } : {};
+      const data = await complaintApi.getMyComplaints(params);
+      setComplaints(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load complaints",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      return;
+    try {
+      await complaintApi.create(formData);
+      toast({
+        title: "Success",
+        description: "Complaint filed successfully",
+      });
+      setShowForm(false);
+      setFormData({ category: "electricity", title: "", description: "", propertyId: "", images: [] });
+      fetchComplaints();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to file complaint",
+        variant: "destructive",
+      });
     }
-    setSubmitting(true);
-    await new Promise((res) => setTimeout(res, 800));
-    const newComplaint = {
-      id: crypto.randomUUID(),
-      ...form,
-      status: "open",
-      resolution: null,
-      createdAt: new Date().toISOString(),
-    };
-    setComplaints((prev) => [newComplaint, ...prev]);
-    setForm(INITIAL_FORM);
-    setErrors({});
-    setSubmitting(false);
-    setOpen(false);
-  };
-
-  const handleCancel = () => {
-    setOpen(false);
-    setForm(INITIAL_FORM);
-    setErrors({});
   };
 
   return (
-    <DashboardLayout title="Complaints">
-      <div className="max-w-2xl mx-auto space-y-5">
+    <DashboardLayout title="My Complaints">
+      <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">Complaints</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Report issues with properties or owners</p>
-          </div>
-          <button
-            onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            File Complaint
-          </button>
+          <h1 className="text-xl font-bold">My Complaints</h1>
+          <Button size="sm" onClick={() => setShowForm(!showForm)}>
+            <Plus className="h-4 w-4 mr-1.5" />
+            New Complaint
+          </Button>
         </div>
 
-        {/* Modal */}
-        {open && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/50" onClick={handleCancel} />
-            <div className="relative bg-card rounded-xl shadow-xl w-full max-w-md mx-4 p-6 border border-border">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold">File a Complaint</h2>
-                <button onClick={handleCancel} className="text-muted-foreground hover:text-foreground">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* New Complaint Form */}
+        {showForm && (
+          <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <h3 className="font-semibold text-sm">File New Complaint</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <select
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full mt-1.5 px-3 py-2 rounded-lg border border-input bg-background text-sm"
+                  required
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Complaint type</label>
-                  <select
-                    value={form.type}
-                    onChange={(e) => handleChange("type", e.target.value)}
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
-                  >
-                    <option value="">Select type</option>
-                    {COMPLAINT_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                  {errors.type && <p className="text-xs text-destructive">{errors.type}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Title</label>
-                  <input
-                    type="text"
-                    value={form.title}
-                    onChange={(e) => handleChange("title", e.target.value)}
-                    placeholder="Brief summary of the issue"
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
-                  />
-                  {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Description</label>
-                  <textarea
-                    value={form.description}
-                    onChange={(e) => handleChange("description", e.target.value)}
-                    placeholder="Describe the issue in detail (min. 20 characters)"
-                    rows={4}
-                    className="w-full border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
-                  />
-                  {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
-                </div>
-                <div className="flex justify-end gap-2 pt-1">
-                  <button type="button" onClick={handleCancel} className="px-4 py-2 text-sm font-medium border border-input rounded-lg hover:bg-muted transition-colors">Cancel</button>
-                  <button type="submit" disabled={submitting} className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors">
-                    {submitting ? "Submitting..." : "Submit Complaint"}
-                  </button>
-                </div>
-              </form>
-            </div>
+
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Brief title for your complaint"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe your complaint in detail"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1">Submit Complaint</Button>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+              </div>
+            </form>
           </div>
         )}
 
-        {/* Complaints list */}
-        {complaints.length > 0 ? (
+        {/* Status filter tabs */}
+        <div className="flex gap-1.5 flex-wrap">
+          {STATUS_TABS.map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatus(s)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
+                status === s ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {s.replace("_", " ")}
+            </button>
+          ))}
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-2">
+                <Skeleton className="h-5 w-1/2" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
+          </div>
+        ) : complaints.length > 0 ? (
           <div className="space-y-3">
             {complaints.map((c) => {
-              const sc = statusConfig[c.status] ?? { label: c.status, color: "bg-muted text-muted-foreground" };
+              const sc = statusConfig[c.status] ?? { label: c.status, color: "bg-muted text-muted-foreground", icon: Clock };
+              const StatusIcon = sc.icon;
               return (
-                <div key={c.id} className="bg-card border border-border rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-medium text-sm">{c.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5 capitalize">{c.type.replace(/_/g, " ")}</p>
+                <div
+                  key={c._id}
+                  onClick={() => setSelectedComplaint(selectedComplaint?._id === c._id ? null : c)}
+                  className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium capitalize">
+                          {c.category.replace("_", " ")}
+                        </span>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 ${sc.color}`}>
+                          <StatusIcon className="h-3 w-3" /> {sc.label}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-sm">{c.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
                     </div>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${sc.color}`}>{sc.label}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{c.description}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{new Date(c.createdAt).toLocaleDateString()}</p>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{new Date(c.createdAt).toLocaleDateString("en-IN")}</span>
+                    {c.ownerReply && <span className="text-primary">Owner replied</span>}
+                  </div>
+
+                  {/* Expanded view */}
+                  {selectedComplaint?._id === c._id && (
+                    <div className="mt-4 pt-4 border-t border-border space-y-3">
+                      <div>
+                        <h4 className="text-xs font-semibold text-muted-foreground mb-1">Full Description</h4>
+                        <p className="text-sm">{c.description}</p>
+                      </div>
+
+                      {c.images && c.images.length > 0 && (
+                        <div>
+                          <h4 className="text-xs font-semibold text-muted-foreground mb-2">Images</h4>
+                          <div className="flex gap-2 flex-wrap">
+                            {c.images.map((img, idx) => (
+                              <img key={idx} src={img} alt={`Complaint ${idx + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {c.resolution && (
+                        <div>
+                          <h4 className="text-xs font-semibold text-muted-foreground mb-1">Resolution</h4>
+                          <p className="text-sm bg-muted/50 p-2 rounded-lg">{c.resolution}</p>
+                        </div>
+                      )}
+
+                      {c.ownerReply && (
+                        <div>
+                          <h4 className="text-xs font-semibold text-muted-foreground mb-1">Owner Reply</h4>
+                          <p className="text-sm bg-primary/5 p-2 rounded-lg border border-primary/10">{c.ownerReply}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(c.repliedAt).toLocaleDateString("en-IN")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         ) : (
           <div className="text-center py-16 text-muted-foreground bg-card border border-border rounded-xl">
-            <svg className="h-10 w-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
-            <p className="font-medium">No complaints filed</p>
-            <p className="text-sm mt-1">If you face any issues, you can file a complaint here</p>
+            <AlertTriangle className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="font-medium">No complaints found</p>
+            <p className="text-sm mt-1">Your complaints will appear here</p>
           </div>
         )}
       </div>

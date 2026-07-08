@@ -11,8 +11,10 @@ import {
   ChevronLeft,
   Menu,
   X,
+  Bell,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import NotificationBell from "./NotificationBell";
 
 const studentNavItems = [
   { label: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
@@ -36,6 +38,7 @@ const adminNavItems = [
   { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
   { label: "All Properties", href: "/dashboard/admin/properties", icon: Building2 },
   { label: "Users", href: "/dashboard/admin/users", icon: User },
+  { label: "Bookings", href: "/dashboard/admin/bookings", icon: Calendar },
   { label: "Complaints", href: "/dashboard/admin/complaints", icon: AlertTriangle },
 ];
 
@@ -103,7 +106,16 @@ export default function DashboardLayout({ children, title }) {
       </nav>
 
       {/* User info & logout */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border space-y-2">
+        <div className="flex items-center gap-3 px-3 py-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
+            {user?.fullName?.charAt(0) || "U"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user?.fullName}</p>
+            <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+          </div>
+        </div>
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -153,14 +165,22 @@ export default function DashboardLayout({ children, title }) {
           <button onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
-          {title && (
-            <h1 className="font-semibold text-sm truncate">{title}</h1>
-          )}
+          <div className="flex-1">
+            {title && (
+              <h1 className="font-semibold text-sm truncate">{title}</h1>
+            )}
+          </div>
+          <NotificationBell />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
+
+        {/* Desktop notification bell */}
+        <div className="hidden md:block absolute top-4 right-4">
+          <NotificationBell />
+        </div>
       </div>
     </div>
   );

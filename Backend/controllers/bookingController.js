@@ -136,7 +136,34 @@ export const updateBookingStatus = async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
+    // Validate status transition
+    const validTransitions = {
+      pending: ["accepted", "rejected", "cancelled"],
+      accepted: ["confirmed", "cancelled"],
+      rejected: [],
+      confirmed: ["completed", "cancelled"],
+      cancelled: [],
+      completed: []
+    };
+
+    if (!validTransitions[booking.status]?.includes(status)) {
+      return res.status(400).json({ 
+        message: `Cannot change status from ${booking.status} to ${status}` 
+      });
+    }
+
     booking.status = status;
+    
+    // If rejected or cancelled, restore available rooms
+    if (status === "rejected" || status === "cancelled") {
+      const property = await Property.findById(booking.property);
+      if (property) {
+        property.availableRooms += 1;
+        property.isAvailable = true;
+        await property.save();
+      }
+    }
+    
     await booking.save();
 
     // Notify tenant

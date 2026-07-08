@@ -12,15 +12,18 @@ const complaintSchema = new mongoose.Schema(
       ref: "Property",
       default: null,
     },
-    type: {
+    category: {
       type: String,
       enum: [
-        "fake_listing",
-        "misconduct",
-        "hidden_charges",
-        "safety_concern",
-        "fraud",
-        "other",
+        "electricity",
+        "water",
+        "wifi",
+        "cleaning",
+        "food",
+        "security",
+        "furniture",
+        "maintenance",
+        "others",
       ],
       required: true,
     },
@@ -36,7 +39,7 @@ const complaintSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["open", "investigating", "resolved", "dismissed"],
+      enum: ["open", "in_progress", "resolved", "closed"],
       default: "open",
     },
     resolution: {
@@ -46,6 +49,18 @@ const complaintSchema = new mongoose.Schema(
     resolvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    ownerReply: {
+      type: String,
+      default: null,
+    },
+    repliedAt: {
+      type: Date,
       default: null,
     },
   },

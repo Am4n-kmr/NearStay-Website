@@ -87,6 +87,7 @@ export const complaintApi = {
   getMyComplaints: () => api.get("/complaints/mine").then((r) => r.data),
   getAll: (params) => api.get("/complaints/all", { params }).then((r) => r.data),
   updateStatus: (id, data) => api.patch(`/complaints/${id}/status`, data).then((r) => r.data),
+  replyToComplaint: (id, data) => api.patch(`/complaints/${id}/reply`, data).then((r) => r.data),
 };
 
 // ─── Notifications ───
@@ -102,6 +103,16 @@ export const reviewApi = {
   getByProperty: (propertyId) => api.get(`/reviews/property/${propertyId}`).then((r) => r.data),
   add: (propertyId, data) => api.post(`/reviews/property/${propertyId}`, data).then((r) => r.data),
   delete: (id) => api.delete(`/reviews/${id}`).then((r) => r.data),
+};
+
+// ─── Payments ───
+export const paymentApi = {
+  createOrder: (data) => api.post("/payments/create-order", data).then((r) => r.data),
+  verify: (data) => api.post("/payments/verify", data).then((r) => r.data),
+  getBookingPayments: (bookingId) => api.get(`/payments/booking/${bookingId}`).then((r) => r.data),
+  getMyPayments: (params) => api.get("/payments/my-payments", { params }).then((r) => r.data),
+  processRefund: (paymentId, data) => api.patch(`/payments/${paymentId}/refund`, data).then((r) => r.data),
+  getAll: (params) => api.get("/payments/all", { params }).then((r) => r.data),
 };
 
 // ─── Admin ───
