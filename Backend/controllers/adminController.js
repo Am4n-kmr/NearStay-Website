@@ -92,6 +92,28 @@ export const getPendingProperties = async (req, res) => {
   }
 };
 
+// Get all properties (admin view - includes approved + unapproved)
+export const getAllProperties = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (status === "approved") filter.isApproved = true;
+    else if (status === "pending") filter.isApproved = false;
+
+    const total = await Property.countDocuments(filter);
+    const properties = await Property.find(filter)
+      .populate("owner", "fullName email phone")
+      .sort({ createdAt: -1 })
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+
+    res.json({ properties, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
+  } catch (error) {
+    console.error("getAllProperties error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Approve/reject property (with role check)
 export const moderateProperty = async (req, res) => {
   try {

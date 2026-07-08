@@ -111,6 +111,7 @@ export const adminApi = {
   toggleBlock: (userId) => api.patch(`/admin/users/${userId}/block`).then((r) => r.data),
   changeRole: (userId, role) => api.patch(`/admin/users/${userId}/role`, { role }).then((r) => r.data),
   getPendingProperties: () => api.get("/admin/properties/pending").then((r) => r.data),
+  getAllProperties: (params) => api.get("/admin/properties", { params }).then((r) => r.data),
   moderateProperty: (id, isApproved) => api.patch(`/admin/properties/${id}/moderate`, { isApproved }).then((r) => r.data),
 };
 

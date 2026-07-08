@@ -5,6 +5,7 @@ import {
   toggleBlockUser,
   changeUserRole,
   getPendingProperties,
+  getAllProperties,
   moderateProperty,
 } from "../controllers/adminController.js";
 import authenticate, { authorizeRoles } from "../middleware/auth.js";
@@ -19,6 +20,7 @@ router.get("/users", getAllUsers);
 router.patch("/users/:id/block", toggleBlockUser);
 router.patch("/users/:id/role", changeUserRole);
 router.get("/properties/pending", getPendingProperties);
+router.get("/properties", getAllProperties);
 router.patch("/properties/:id/moderate", moderateProperty);
 
 export default router;

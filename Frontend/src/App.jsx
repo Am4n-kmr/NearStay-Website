@@ -27,6 +27,7 @@ import OwnerEditProperty from "./pages/dashboard/Owner/EditProperty";
 
 import AdminDashboard from "./pages/dashboard/Admin/Index";
 import AdminUsers from "./pages/dashboard/Admin/Users";
+import AdminProperties from "./pages/dashboard/Admin/Properties";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ function App() {
           {/* Admin Dashboard */}
           <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+          <Route path="/dashboard/admin/properties" element={<ProtectedRoute><AdminProperties /></ProtectedRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

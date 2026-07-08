@@ -34,7 +34,7 @@ const ownerNavItems = [
 
 const adminNavItems = [
   { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
-  { label: "Properties", href: "/dashboard/admin/properties", icon: Building2 },
+  { label: "All Properties", href: "/dashboard/admin/properties", icon: Building2 },
   { label: "Users", href: "/dashboard/admin/users", icon: User },
   { label: "Complaints", href: "/dashboard/admin/complaints", icon: AlertTriangle },
 ];
