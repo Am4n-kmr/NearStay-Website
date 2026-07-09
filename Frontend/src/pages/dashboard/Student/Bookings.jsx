@@ -106,7 +106,7 @@ export default function StudentBookings() {
               const sc = statusConfig[b.status] ?? { label: b.status, color: "bg-muted text-muted-foreground", icon: Clock };
               const StatusIcon = sc.icon;
               return (
-                <div key={b._id} className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-colors">
+                <div key={b._id} className=" border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-colors">
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="min-w-0 flex-1">

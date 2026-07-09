@@ -179,9 +179,16 @@ export default function PropertyDetailPage() {
       {/* Breadcrumb */}
       <div className="max-w-4xl mx-auto px-4 py-3">
         <nav className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
-          <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+          <Link to="/" className="hover:text-foreground transition-colors">
+            Home
+          </Link>
           <span>/</span>
-          <Link to="/search" className="hover:text-foreground transition-colors">Search</Link>
+          <Link
+            to="/search"
+            className="hover:text-foreground transition-colors"
+          >
+            Search
+          </Link>
           <span>/</span>
           <span className="text-foreground line-clamp-1">{property.title}</span>
         </nav>
@@ -194,18 +201,23 @@ export default function PropertyDetailPage() {
             src={images[imgIdx]}
             alt={property.title}
             className="w-full h-full object-cover transition-opacity duration-200"
-            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop"; }}
+            onError={(e) => {
+              e.target.src =
+                "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop";
+            }}
           />
           {images.length > 1 && (
             <>
               <button
-                onClick={() => setImgIdx(i => (i - 1 + images.length) % images.length)}
+                onClick={() =>
+                  setImgIdx((i) => (i - 1 + images.length) % images.length)
+                }
                 className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
               >
                 <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
-                onClick={() => setImgIdx(i => (i + 1) % images.length)}
+                onClick={() => setImgIdx((i) => (i + 1) % images.length)}
                 className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
               >
                 <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -217,10 +229,12 @@ export default function PropertyDetailPage() {
           )}
           {/* Wishlist button */}
           <button
-            onClick={() => setWishlisted(w => !w)}
+            onClick={() => setWishlisted((w) => !w)}
             className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
           >
-            <Heart className={`h-4 w-4 ${wishlisted ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`} />
+            <Heart
+              className={`h-4 w-4 ${wishlisted ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`}
+            />
           </button>
         </div>
 
@@ -230,14 +244,17 @@ export default function PropertyDetailPage() {
             {/* Title & badges */}
             <div>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <h1 className="text-xl sm:text-2xl font-bold leading-tight">{property.title}</h1>
+                <h1 className="text-xl sm:text-2xl font-bold leading-tight">
+                  {property.title}
+                </h1>
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
                 <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium capitalize">
                   {property.propertyType}
                 </span>
                 <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground capitalize">
-                  {genderLabels[property.genderPreference] || property.genderPreference}
+                  {genderLabels[property.genderPreference] ||
+                    property.genderPreference}
                 </span>
                 {property.isApproved && (
                   <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 flex items-center gap-1">
@@ -247,13 +264,19 @@ export default function PropertyDetailPage() {
               </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
                 <MapPin className="h-4 w-4 shrink-0" />
-                <span>{property.address}, {property.city}, {property.state}</span>
+                <span>
+                  {property.address}, {property.city}, {property.state}
+                </span>
               </div>
               {property.reviewRating > 0 && (
                 <div className="flex items-center gap-2">
                   <StarRating rating={property.reviewRating} size="md" />
-                  <span className="text-sm font-medium">{property.reviewRating.toFixed(1)}</span>
-                  <span className="text-xs text-muted-foreground">({property.reviewCount} reviews)</span>
+                  <span className="text-sm font-medium">
+                    {property.reviewRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ({property.reviewCount} reviews)
+                  </span>
                 </div>
               )}
             </div>
@@ -261,12 +284,16 @@ export default function PropertyDetailPage() {
             {/* Amenities */}
             <div className="flex flex-wrap gap-3">
               {amenities.map(({ key, label, icon: Icon }) => {
-                const hasAmenity = property.amenities?.includes(key) || 
-                                  (key === "wifi" && property.hasWifi) ||
-                                  (key === "ac" && property.hasAC) ||
-                                  (key === "food" && property.foodAvailable);
+                const hasAmenity =
+                  property.amenities?.includes(key) ||
+                  (key === "wifi" && property.hasWifi) ||
+                  (key === "ac" && property.hasAC) ||
+                  (key === "food" && property.foodAvailable);
                 return hasAmenity ? (
-                  <div key={key} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <div
+                    key={key}
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground"
+                  >
                     <Icon className="h-4 w-4 text-primary" /> {label}
                   </div>
                 ) : null;
@@ -276,28 +303,41 @@ export default function PropertyDetailPage() {
             {/* Description */}
             {property.description && (
               <div>
-                <h2 className="font-semibold mb-2 text-sm sm:text-base">About this property</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{property.description}</p>
+                <h2 className="font-semibold mb-2 text-sm sm:text-base">
+                  About this property
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {property.description}
+                </p>
               </div>
             )}
 
             {/* House rules */}
             {property.houseRules && (
               <div>
-                <h2 className="font-semibold mb-2 text-sm sm:text-base">House rules</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">{property.houseRules}</p>
+                <h2 className="font-semibold mb-2 text-sm sm:text-base">
+                  House rules
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {property.houseRules}
+                </p>
               </div>
             )}
 
             {/* Reviews */}
             <div>
               <h2 className="font-semibold mb-3 text-sm sm:text-base">
-                Reviews {property.reviewCount > 0 && `(${property.reviewCount})`}
+                Reviews{" "}
+                {property.reviewCount > 0 && `(${property.reviewCount})`}
               </h2>
               {property.reviewCount > 0 ? (
-                <p className="text-sm text-muted-foreground">Reviews will be displayed here</p>
+                <p className="text-sm text-muted-foreground">
+                  Reviews will be displayed here
+                </p>
               ) : (
-                <p className="text-sm text-muted-foreground">No reviews yet. Be the first to review!</p>
+                <p className="text-sm text-muted-foreground">
+                  No reviews yet. Be the first to review!
+                </p>
               )}
             </div>
           </div>
@@ -308,11 +348,14 @@ export default function PropertyDetailPage() {
               <div>
                 <div className="text-2xl font-bold text-primary">
                   ₹{property.rent?.toLocaleString("en-IN")}
-                  <span className="text-sm font-normal text-muted-foreground">/month</span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    /month
+                  </span>
                 </div>
                 {property.securityDeposit > 0 && (
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    Security deposit: ₹{property.securityDeposit.toLocaleString("en-IN")}
+                    Security deposit: ₹
+                    {property.securityDeposit.toLocaleString("en-IN")}
                   </div>
                 )}
                 <div className="text-xs text-muted-foreground mt-0.5">
@@ -322,7 +365,7 @@ export default function PropertyDetailPage() {
 
               <button
                 onClick={handleBook}
-                className="w-full flex items-center justify-center gap-2 h-11 bg-primary text-white rounded-lg font-semibold text-sm transition-all active:scale-[0.98] hover:shadow-lg hover:shadow-primary/20"
+                className="w-full flex items-center justify-center gap-2 h-11 bg-black text-white rounded-lg font-semibold text-sm transition-all active:scale-[0.98] hover:shadow-lg hover:shadow-primary/20"
               >
                 <Calendar className="h-4 w-4" />
                 Book Now
@@ -342,16 +385,24 @@ export default function PropertyDetailPage() {
                   {property.owner?.fullName?.charAt(0) || "O"}
                 </div>
                 <div>
-                  <div className="text-sm font-medium">{property.owner?.fullName || "Owner"}</div>
-                  <div className="text-xs text-muted-foreground">Property owner</div>
+                  <div className="text-sm font-medium">
+                    {property.owner?.fullName || "Owner"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Property owner
+                  </div>
                 </div>
               </div>
 
               {property.isApproved && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
                   <ShieldCheck className="h-4 w-4 text-emerald-600 mx-auto mb-1" />
-                  <p className="text-xs text-emerald-700 font-medium">Verified property</p>
-                  <p className="text-xs text-emerald-600">Reviewed by NearStay team</p>
+                  <p className="text-xs text-emerald-700 font-medium">
+                    Verified property
+                  </p>
+                  <p className="text-xs text-emerald-600">
+                    Reviewed by NearStay team
+                  </p>
                 </div>
               )}
             </div>
@@ -361,37 +412,55 @@ export default function PropertyDetailPage() {
 
       {/* Booking Modal */}
       {showBookingForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white border border-border rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Book Property</h2>
             <form onSubmit={handleBookingSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Move-in Date</label>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Move-in Date
+                </label>
                 <input
                   type="date"
                   required
                   min={new Date().toISOString().split("T")[0]}
                   value={bookingData.moveInDate}
-                  onChange={(e) => setBookingData({ ...bookingData, moveInDate: e.target.value })}
+                  onChange={(e) =>
+                    setBookingData({
+                      ...bookingData,
+                      moveInDate: e.target.value,
+                    })
+                  }
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Duration (months)</label>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Duration (months)
+                </label>
                 <select
                   value={bookingData.durationMonths}
-                  onChange={(e) => setBookingData({ ...bookingData, durationMonths: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setBookingData({
+                      ...bookingData,
+                      durationMonths: parseInt(e.target.value),
+                    })
+                  }
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => (
-                    <option key={month} value={month}>{month} month{month > 1 ? "s" : ""}</option>
+                    <option key={month} value={month}>
+                      {month} month{month > 1 ? "s" : ""}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Monthly Rent</label>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Monthly Rent
+                </label>
                 <input
                   type="text"
                   value={`₹${property.rent?.toLocaleString("en-IN")}`}
@@ -401,7 +470,9 @@ export default function PropertyDetailPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Security Deposit</label>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Security Deposit
+                </label>
                 <input
                   type="text"
                   value={`₹${property.securityDeposit?.toLocaleString("en-IN")}`}
@@ -411,7 +482,9 @@ export default function PropertyDetailPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Total Amount</label>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Total Amount
+                </label>
                 <input
                   type="text"
                   value={`₹${(property.rent * bookingData.durationMonths + property.securityDeposit)?.toLocaleString("en-IN")}`}
@@ -421,10 +494,14 @@ export default function PropertyDetailPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Notes (optional)</label>
+                <label className="text-sm font-medium mb-1.5 block">
+                  Notes (optional)
+                </label>
                 <textarea
                   value={bookingData.notes}
-                  onChange={(e) => setBookingData({ ...bookingData, notes: e.target.value })}
+                  onChange={(e) =>
+                    setBookingData({ ...bookingData, notes: e.target.value })
+                  }
                   placeholder="Any special requests or notes..."
                   rows={3}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm"
@@ -432,8 +509,16 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1">Confirm Booking</Button>
-                <Button type="button" variant="outline" onClick={() => setShowBookingForm(false)}>Cancel</Button>
+                <Button type="submit" className="flex-1">
+                  Confirm Booking
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowBookingForm(false)}
+                >
+                  Cancel
+                </Button>
               </div>
             </form>
           </div>
@@ -446,10 +531,14 @@ export default function PropertyDetailPage() {
           <div className="flex-1 min-w-0">
             <div className="text-lg font-bold text-primary leading-none">
               ₹{property.rent?.toLocaleString("en-IN")}
-              <span className="text-xs font-normal text-muted-foreground">/mo</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                /mo
+              </span>
             </div>
             {property.securityDeposit > 0 && (
-              <div className="text-xs text-muted-foreground mt-0.5">+₹{property.securityDeposit.toLocaleString("en-IN")} deposit</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                +₹{property.securityDeposit.toLocaleString("en-IN")} deposit
+              </div>
             )}
           </div>
           <button

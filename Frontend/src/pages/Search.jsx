@@ -28,8 +28,8 @@ function Navbar() {
           <span className="font-bold text-lg tracking-tight">NearStay</span>
         </a>
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/login")} className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Sign in</button>
-          <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20">Get started</button>
+          <button onClick={() => navigate("/login")} className=" bg-black text-white text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Sign out</button>
+          {/* <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-black text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20">Get started</button> */}
         </div>
       </div>
     </nav>
@@ -242,7 +242,7 @@ export default function SearchPage() {
 
         <button
           onClick={() => applyFilters()}
-          className="w-full h-11 bg-primary text-white text-sm font-semibold rounded-lg transition-all active:scale-[0.98]"
+          className="w-full h-11 bg-black text-white text-sm font-semibold rounded-lg transition-all active:scale-[0.98]"
         >
           Apply Filters
         </button>
@@ -275,10 +275,10 @@ export default function SearchPage() {
 
           <button
             onClick={() => applyFilters()}
-            className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 bg-primary text-white text-sm font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-primary/20 hover:scale-105 active:scale-95 shrink-0"
+            className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 bg-black text-white text-sm font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-primary/20 hover:scale-105 active:scale-95 shrink-0"
           >
             <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Search</span>
+            <span>Search</span>
           </button>
 
           <button

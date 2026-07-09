@@ -181,13 +181,22 @@ export default function HomePage() {
             <span className="font-bold text-lg tracking-tight">NearStay</span>
           </a>
           <div className="flex items-center gap-2 sm:gap-3">
-            <button onClick={() => navigate("/search")} className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5">
+            <button
+              onClick={() => navigate("/search")}
+              className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
+            >
               Browse
             </button>
-            <button onClick={() => navigate("/login")} className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button
+              onClick={() => navigate("/login")}
+              className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+            >
               Sign in
             </button>
-            <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20">
+            <button
+              onClick={() => navigate("/register")}
+              className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-[#5548e3] text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20"
+            >
               Get started
             </button>
           </div>
@@ -195,12 +204,27 @@ export default function HomePage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden animate-fade-in" style={{ background: "linear-gradient(135deg, #0f0c29 0%, #1a1060 40%, #24243e 100%)" }}>
+      <section
+        className="relative overflow-hidden animate-fade-in"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f0c29 0%, #1a1060 40%, #24243e 100%)",
+        }}
+      >
         {/* Animated glow orbs */}
-        <div className="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] max-w-lg rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent 70%)" }} />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35vw] h-[35vw] max-w-md rounded-full opacity-15 blur-3xl pointer-events-none animate-pulse-glow"
-          style={{ background: "radial-gradient(circle, #8b5cf6, transparent 70%)", animationDelay: "2s" }} />
+        <div
+          className="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] max-w-lg rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
+          style={{
+            background: "radial-gradient(circle, #6366f1, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute bottom-[-10%] right-[-5%] w-[35vw] h-[35vw] max-w-md rounded-full opacity-15 blur-3xl pointer-events-none animate-pulse-glow"
+          style={{
+            background: "radial-gradient(circle, #8b5cf6, transparent 70%)",
+            animationDelay: "2s",
+          }}
+        />
 
         <div className="relative max-w-7xl mx-auto px-4 pt-14 pb-16 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Left content */}
@@ -211,15 +235,23 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight mb-5 animate-fade-in-up delay-500">
-              Find your perfect<br />
-              <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(90deg, #a78bfa, #60a5fa)" }}>
+              Find your perfect
+              <br />
+              <span
+                className="text-transparent bg-clip-text"
+                style={{
+                  backgroundImage: "linear-gradient(90deg, #a78bfa, #60a5fa)",
+                }}
+              >
                 PG or hostel
               </span>
-              <br />near your college
+              <br />
+              near your college
             </h1>
 
             <p className="text-white/60 text-sm sm:text-base leading-relaxed mb-8 max-w-md animate-fade-in-up delay-600">
-              Verified rooms, direct from owners. No brokers, no hidden fees. Browse thousands of PGs, hostels, and shared rooms across India.
+              Verified rooms, direct from owners. No brokers, no hidden fees.
+              Browse thousands of PGs, hostels, and shared rooms across India.
             </p>
 
             {/* Search bar */}
@@ -246,8 +278,10 @@ export default function HomePage() {
 
             {/* Popular cities quick links */}
             <div className="flex flex-wrap gap-2 mt-4 animate-fade-in-up delay-800">
-              <span className="text-white/40 text-xs self-center">Popular:</span>
-              {["Mumbai", "Delhi", "Bangalore", "Pune"].map(city => (
+              <span className="text-white/40 text-xs self-center">
+                Popular:
+              </span>
+              {["Mumbai", "Delhi", "Bangalore", "Pune"].map((city) => (
                 <button
                   key={city}
                   onClick={() => handleCitySearch(city)}
@@ -261,13 +295,17 @@ export default function HomePage() {
 
           {/* Right — Review carousel (desktop) */}
           <div className="hidden lg:flex flex-col h-72 animate-fade-in delay-600">
-            <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-4">What students say</p>
+            <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-4">
+              What students say
+            </p>
             <ReviewCarousel />
           </div>
 
           {/* Mobile reviews strip */}
           <div className="lg:hidden mt-2 animate-fade-in-up delay-600">
-            <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-4">What students say</p>
+            <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-4">
+              What students say
+            </p>
             <ReviewCarousel />
           </div>
         </div>
@@ -282,9 +320,16 @@ export default function HomePage() {
             { value: "50+", label: "Cities Covered" },
             { value: "4.8/5", label: "Average Rating" },
           ].map(({ value, label }) => (
-            <div key={label} className="py-1 transition-transform hover:scale-105 duration-200">
-              <div className="text-xl sm:text-2xl font-bold text-primary">{value}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">{label}</div>
+            <div
+              key={label}
+              className="py-1 transition-transform hover:scale-105 duration-200"
+            >
+              <div className="text-xl sm:text-2xl font-bold text-primary">
+                {value}
+              </div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                {label}
+              </div>
             </div>
           ))}
         </div>
@@ -302,8 +347,12 @@ export default function HomePage() {
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                 <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               </div>
-              <div className="font-semibold text-xs sm:text-sm mb-1">{label}</div>
-              <div className="text-xs text-muted-foreground hidden sm:block">{desc}</div>
+              <div className="font-semibold text-xs sm:text-sm mb-1">
+                {label}
+              </div>
+              <div className="text-xs text-muted-foreground hidden sm:block">
+                {desc}
+              </div>
             </div>
           ))}
         </div>
@@ -313,8 +362,12 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 pb-12 sm:pb-14">
         <div className="flex items-center justify-between mb-5 sm:mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Featured Properties</h2>
-            <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">Handpicked, highly-rated accommodations</p>
+            <h2 className="text-xl sm:text-2xl font-bold">
+              Featured Properties
+            </h2>
+            <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
+              Handpicked, highly-rated accommodations
+            </p>
           </div>
           <button
             onClick={() => navigate("/search")}
@@ -325,29 +378,36 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {isFeaturedLoading
-            ? Array.from({ length: 6 }).map((_, i) => <PropertyCardSkeleton key={i} />)
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <PropertyCardSkeleton key={i} />
+              ))
             : featuredProperties.length === 0 && (
-              <div className="col-span-full text-center py-10 text-muted-foreground">
-                <Building2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                <p>No featured properties yet. Check back soon!</p>
-              </div>
-            )
-          }
+                <div className="col-span-full text-center py-10 text-muted-foreground">
+                  <Building2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                  <p>No featured properties yet. Check back soon!</p>
+                </div>
+              )}
         </div>
       </section>
 
       {/* ── Popular Cities ── */}
       <section className="bg-muted/40 border-y border-border py-12 sm:py-14">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Browse by city</h2>
-          <p className="text-muted-foreground text-xs sm:text-sm mb-5 sm:mb-6">Find accommodation in India's top student cities</p>
+          <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">
+            Browse by city
+          </h2>
+          <p className="text-muted-foreground text-xs sm:text-sm mb-5 sm:mb-6">
+            Find accommodation in India's top student cities
+          </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {POPULAR_CITIES.map((city, i) => (
               <button
                 key={city}
                 onClick={() => handleCitySearch(city)}
                 className="relative overflow-hidden rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200 hover:scale-105 hover:-translate-y-1 active:scale-95 p-4 text-left group"
-                style={{ animation: `fadeInUp 0.4s ease-out ${i * 0.05}s both` }}
+                style={{
+                  animation: `fadeInUp 0.4s ease-out ${i * 0.05}s both`,
+                }}
               >
                 <div className="font-semibold text-sm mb-0.5">{city}</div>
                 <div className="text-xs text-muted-foreground">Explore</div>
@@ -364,7 +424,9 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-12 sm:py-16">
         <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-xl sm:text-2xl font-bold">How NearStay works</h2>
-          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Book your room in 3 simple steps</p>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+            Book your room in 3 simple steps
+          </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {HOW_IT_WORKS.map(({ step, title, desc }, i) => (
@@ -378,8 +440,12 @@ export default function HomePage() {
                   {step}
                 </div>
                 <div className="text-left sm:text-center">
-                  <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">{title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                  <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                    {title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {desc}
+                  </p>
                 </div>
               </div>
               {i < HOW_IT_WORKS.length - 1 && (
@@ -391,13 +457,26 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section className="relative overflow-hidden text-white py-14 sm:py-16" style={{ background: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)" }}>
-        <div className="absolute top-[-20%] right-[-5%] w-80 h-80 rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent 70%)" }} />
+      <section
+        className="relative overflow-hidden text-white py-14 sm:py-16"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
+        }}
+      >
+        <div
+          className="absolute top-[-20%] right-[-5%] w-80 h-80 rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
+          style={{
+            background: "radial-gradient(circle, #6366f1, transparent 70%)",
+          }}
+        />
         <div className="relative max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 animate-fade-in-up">Own a property? List it on NearStay</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 animate-fade-in-up">
+            Own a property? List it on NearStay
+          </h2>
           <p className="text-white/70 mb-6 max-w-lg mx-auto text-sm sm:text-base animate-fade-in-up delay-200">
-            Reach thousands of verified students looking for accommodation. Get bookings within days.
+            Reach thousands of verified students looking for accommodation. Get
+            bookings within days.
           </p>
           <button
             onClick={() => navigate("/register")}
@@ -417,8 +496,12 @@ export default function HomePage() {
             </div>
             <span className="font-semibold text-foreground">NearStay</span>
           </div>
-          <p className="text-xs">Direct student housing. No brokers. No hidden charges.</p>
-          <p className="text-xs">&copy; {new Date().getFullYear()} NearStay. All rights reserved.</p>
+          <p className="text-xs">
+            Direct student housing. No brokers. No hidden charges.
+          </p>
+          <p className="text-xs">
+            &copy; {new Date().getFullYear()} NearStay. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
