@@ -268,10 +268,15 @@ export default function OwnerMessages() {
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <p className="font-medium">Select a conversation</p>
-                <p className="text-sm mt-1">Choose a chat from the list to start messaging</p>
+            <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-muted/20 to-muted/40">
+              <div className="text-center px-6 py-8">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageCircle className="h-10 w-10 text-primary/60" />
+                </div>
+                <p className="font-semibold text-lg mb-2">Your Messages</p>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  Select a conversation from the list to start chatting with students
+                </p>
               </div>
             </div>
           )}

@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Search, SlidersHorizontal, X, MapPin, Star } from "lucide-react";
+import { Search, SlidersHorizontal, X, MapPin, Star, ShieldCheck } from "lucide-react";
 import { propertyApi } from "../lib/api";
 
 function PropertyCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
-      <div className="h-48 bg-muted" />
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="h-48 bg-muted skeleton" />
       <div className="p-4 space-y-2">
-        <div className="h-4 bg-muted rounded w-3/4" />
-        <div className="h-3 bg-muted rounded w-1/2" />
-        <div className="h-4 bg-muted rounded w-1/3 mt-3" />
+        <div className="h-4 bg-muted rounded w-3/4 skeleton" />
+        <div className="h-3 bg-muted rounded w-1/2 skeleton" />
+        <div className="h-4 bg-muted rounded w-1/3 mt-3 skeleton" />
       </div>
     </div>
   );
@@ -19,17 +19,17 @@ function PropertyCardSkeleton() {
 function Navbar() {
   const navigate = useNavigate();
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-4">
-        <a href="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <a href="/" className="flex items-center gap-2 shrink-0 group">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110">
             <span className="font-bold text-sm text-white">N</span>
           </div>
           <span className="font-bold text-lg tracking-tight">NearStay</span>
         </a>
         <div className="flex items-center gap-2">
           <button onClick={() => navigate("/login")} className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Sign in</button>
-          <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">Get started</button>
+          <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20">Get started</button>
         </div>
       </div>
     </nav>
@@ -254,9 +254,9 @@ export default function SearchPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="border-b border-border bg-card sticky top-14 sm:top-16 z-30">
+      <div className="border-b border-border bg-card/95 backdrop-blur-sm sticky top-14 sm:top-16 z-30">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2">
-          <div className="flex-1 flex items-center gap-2 border border-input rounded-lg px-3 bg-background h-10 sm:h-11 min-w-0">
+          <div className="flex-1 flex items-center gap-2 border border-input rounded-lg px-3 bg-background h-10 sm:h-11 min-w-0 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
             <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
             <input
               type="text"
@@ -267,7 +267,7 @@ export default function SearchPage() {
               className="flex-1 bg-transparent text-sm outline-none min-w-0 placeholder-muted-foreground"
             />
             {cityInput && (
-              <button onClick={() => setCityInput("")} className="shrink-0 p-0.5">
+              <button onClick={() => setCityInput("")} className="shrink-0 p-0.5 hover:scale-110 transition-transform">
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             )}
@@ -275,7 +275,7 @@ export default function SearchPage() {
 
           <button
             onClick={() => applyFilters()}
-            className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 bg-primary text-white text-sm font-semibold rounded-lg transition-all active:scale-95 shrink-0"
+            className="flex items-center gap-2 h-10 sm:h-11 px-3 sm:px-4 bg-primary text-white text-sm font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-primary/20 hover:scale-105 active:scale-95 shrink-0"
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Search</span>
@@ -283,7 +283,7 @@ export default function SearchPage() {
 
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="md:hidden flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 border border-input rounded-lg bg-background shrink-0"
+            className="md:hidden flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11 border border-input rounded-lg bg-background hover:bg-muted transition-all hover:scale-105 active:scale-95 shrink-0"
           >
             <SlidersHorizontal className="h-4 w-4" />
           </button>
@@ -307,7 +307,7 @@ export default function SearchPage() {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-5 sm:py-6 flex gap-5 sm:gap-6">
         <aside className="hidden md:block w-60 shrink-0">
-          <div className="sticky top-[7.5rem] bg-card border border-border rounded-xl p-4">
+          <div className="sticky top-[7.5rem] bg-card border border-border rounded-xl p-4 shadow-sm">
             <h3 className="font-semibold mb-4">Filters</h3>
             <FiltersContent />
           </div>
@@ -335,15 +335,22 @@ export default function SearchPage() {
                   <Link
                     key={p._id}
                     to={`/property/${p._id}`}
-                    className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all group"
+                    className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 group"
                   >
-                    {p.images?.[0] ? (
-                      <img src={p.images[0]} alt={p.title} className="h-48 w-full object-cover" />
-                    ) : (
-                      <div className="h-48 bg-muted flex items-center justify-center text-muted-foreground text-sm">
-                        No image
-                      </div>
-                    )}
+                    <div className="relative overflow-hidden">
+                      {p.images?.[0] ? (
+                        <img src={p.images[0]} alt={p.title} className="h-48 w-full object-cover transition-transform group-hover:scale-110" />
+                      ) : (
+                        <div className="h-48 bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                          No image
+                        </div>
+                      )}
+                      {p.isApproved && (
+                        <div className="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" /> Verified
+                        </div>
+                      )}
+                    </div>
                     <div className="p-4 space-y-2">
                       <h3 className="font-semibold text-sm group-hover:text-primary transition-colors truncate">{p.title}</h3>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -353,7 +360,7 @@ export default function SearchPage() {
                         <p className="text-sm font-bold">₹{p.rent?.toLocaleString("en-IN")}/<span className="text-xs font-normal text-muted-foreground">mo</span></p>
                         {p.reviewCount > 0 && (
                           <div className="flex items-center gap-1 text-xs text-amber-500">
-                            <Star className="h-3 w-3 fill-current" /> {p.reviewRating} ({p.reviewCount})
+                            <Star className="h-3 w-3 fill-current" /> {p.reviewRating?.toFixed(1)} ({p.reviewCount})
                           </div>
                         )}
                       </div>
@@ -369,7 +376,7 @@ export default function SearchPage() {
               {totalPages > 1 && (
                 <div className="flex justify-center gap-2 mt-8">
                   <button
-                    className="h-10 px-4 border border-input rounded-lg text-sm disabled:opacity-50 transition-colors"
+                    className="h-10 px-4 border border-input rounded-lg text-sm disabled:opacity-50 transition-all hover:bg-muted hover:scale-105 active:scale-95"
                     disabled={urlFilters.page <= 1}
                     onClick={() => applyFilters({ page: urlFilters.page - 1 })}
                   >
@@ -379,7 +386,7 @@ export default function SearchPage() {
                     Page {urlFilters.page} of {totalPages}
                   </span>
                   <button
-                    className="h-10 px-4 border border-input rounded-lg text-sm disabled:opacity-50 transition-colors"
+                    className="h-10 px-4 border border-input rounded-lg text-sm disabled:opacity-50 transition-all hover:bg-muted hover:scale-105 active:scale-95"
                     disabled={urlFilters.page >= totalPages}
                     onClick={() => applyFilters({ page: urlFilters.page + 1 })}
                   >

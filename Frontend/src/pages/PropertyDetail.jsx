@@ -322,11 +322,10 @@ export default function PropertyDetailPage() {
 
               <button
                 onClick={handleBook}
-                disabled={!property.isAvailable || property.availableRooms < 1}
-                className="w-full flex items-center justify-center gap-2 h-11 bg-primary text-white rounded-lg font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 h-11 bg-primary text-white rounded-lg font-semibold text-sm transition-all active:scale-[0.98] hover:shadow-lg hover:shadow-primary/20"
               >
                 <Calendar className="h-4 w-4" />
-                {property.isAvailable && property.availableRooms > 0 ? "Book now" : "Not available"}
+                Book Now
               </button>
 
               <button
@@ -461,8 +460,7 @@ export default function PropertyDetailPage() {
           </button>
           <button
             onClick={handleBook}
-            disabled={!property.isAvailable || property.availableRooms < 1}
-            className="flex items-center gap-1.5 h-11 px-5 bg-primary text-white rounded-lg text-sm font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 h-11 px-5 bg-primary text-white rounded-lg text-sm font-semibold transition-all active:scale-95 hover:shadow-lg hover:shadow-primary/20"
           >
             <Calendar className="h-4 w-4" />
             Book Now
