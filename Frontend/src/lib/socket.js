@@ -10,7 +10,7 @@ export const socket = io(SOCKET_URL, {
 // Connection handlers
 export const connectSocket = (token) => {
   if (!socket.connected) {
-    socket.auth.token = token;
+    socket.auth = { token };
     socket.connect();
   }
 };

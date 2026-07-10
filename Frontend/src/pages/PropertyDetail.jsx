@@ -92,7 +92,7 @@ export default function PropertyDetailPage() {
     }
     try {
       const chat = await chatApi.getOrCreate({ participantId: property.owner._id, propertyId: property._id });
-      navigate(`/dashboard/${user.role === "owner" ? "student" : "owner"}/messages`);
+      navigate(`/dashboard/${user.role}/messages`);
     } catch (error) {
       toast({
         title: "Error",

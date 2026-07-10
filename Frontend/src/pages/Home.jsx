@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Search, MapPin, ShieldCheck, Star, Users, Building2,
   ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Quote
 } from "lucide-react";
+import { propertyApi } from "../lib/api";
 
 const POPULAR_CITIES = ["Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad"];
 
@@ -20,7 +21,7 @@ const HOW_IT_WORKS = [
   { step: "03", title: "Book and pay securely", desc: "Confirm your room and pay through our secure payment gateway." },
 ];
 
-  const REVIEWS = [
+const REVIEWS = [
   { name: "Priya Sharma", college: "IIT Bombay, Mumbai", rating: 5, avatar: "P", color: "bg-violet-500", text: "Found my PG within 2 days of joining. The owner was verified and the room was exactly as shown. No broker fees — saved ₹15,000!" },
   { name: "Rahul Mehta", college: "Delhi University, Delhi", rating: 5, avatar: "R", color: "bg-blue-500", text: "NearStay made my hostel search so easy. The filters helped me find a boys-only hostel with food included near my college. Highly recommend!" },
   { name: "Anjali Singh", college: "Christ University, Bangalore", rating: 5, avatar: "A", color: "bg-emerald-500", text: "As a girl coming from outside the city, safety was my top concern. All properties are verified and the owner was super helpful. Feels safe and homely." },
@@ -106,7 +107,6 @@ function ReviewCarousel() {
   );
 }
 
-// Placeholder property card skeleton while backend is not connected
 function PropertyCardSkeleton() {
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
@@ -120,13 +120,85 @@ function PropertyCardSkeleton() {
   );
 }
 
+function PropertyCard({ property }) {
+  const navigate = useNavigate();
+  const fallbackImg = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop";
+
+  return (
+    <div
+      onClick={() => navigate(`/property/${property._id}`)}
+      className="rounded-xl border border-border bg-card overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+    >
+      <div className="h-48 overflow-hidden bg-muted relative">
+        <img
+          src={property.images?.[0] || fallbackImg}
+          alt={property.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => { e.target.src = fallbackImg; }}
+        />
+        <div className="absolute top-3 left-3">
+          <span className="text-xs px-2 py-1 rounded-full bg-white/90 text-foreground font-medium capitalize shadow-sm">
+            {property.propertyType}
+          </span>
+        </div>
+        <div className="absolute top-3 right-3">
+          {property.genderPreference === "male" ? (
+            <span className="text-xs px-2 py-1 rounded-full bg-blue-500/90 text-white font-medium">Boys</span>
+          ) : property.genderPreference === "female" ? (
+            <span className="text-xs px-2 py-1 rounded-full bg-pink-500/90 text-white font-medium">Girls</span>
+          ) : (
+            <span className="text-xs px-2 py-1 rounded-full bg-green-500/90 text-white font-medium">Co-ed</span>
+          )}
+        </div>
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-sm line-clamp-1 mb-1">{property.title}</h3>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+          <MapPin className="h-3 w-3 shrink-0" />
+          <span className="truncate">{property.city}, {property.state}</span>
+        </div>
+        {property.reviewRating > 0 && (
+          <div className="flex items-center gap-1 mb-2">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            <span className="text-xs font-medium">{property.reviewRating.toFixed(1)}</span>
+            <span className="text-xs text-muted-foreground">({property.reviewCount})</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+          <div>
+            <span className="text-base font-bold text-primary">₹{property.rent?.toLocaleString("en-IN")}</span>
+            <span className="text-xs text-muted-foreground">/month</span>
+          </div>
+          {property.isApproved && (
+            <ShieldCheck className="h-4 w-4 text-emerald-500" title="Verified" />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [isFeaturedLoading, setIsFeaturedLoading] = useState(true);
   const navigate = useNavigate();
 
-  // TODO: Replace with real API calls when backend is ready
-  const featuredProperties = [];
-  const isFeaturedLoading = false;
+  useEffect(() => {
+    fetchFeaturedProperties();
+  }, []);
+
+  const fetchFeaturedProperties = async () => {
+    try {
+      const data = await propertyApi.list({ limit: 6, sortBy: "newest" });
+      setFeaturedProperties(data.properties || []);
+    } catch (error) {
+      console.error("Failed to fetch properties:", error);
+      setFeaturedProperties([]);
+    } finally {
+      setIsFeaturedLoading(false);
+    }
+  };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -211,7 +283,6 @@ export default function HomePage() {
             "linear-gradient(135deg, #0f0c29 0%, #1a1060 40%, #24243e 100%)",
         }}
       >
-        {/* Animated glow orbs */}
         <div
           className="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] max-w-lg rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
           style={{
@@ -227,7 +298,6 @@ export default function HomePage() {
         />
 
         <div className="relative max-w-7xl mx-auto px-4 pt-14 pb-16 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-28 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          {/* Left content */}
           <div className="animate-fade-in-up delay-200">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur text-white/80 text-xs font-medium mb-6 animate-fade-in-up delay-400">
               <ShieldCheck className="h-3.5 w-3.5 text-indigo-300" />
@@ -254,7 +324,6 @@ export default function HomePage() {
               Browse thousands of PGs, hostels, and shared rooms across India.
             </p>
 
-            {/* Search bar */}
             <div className="flex gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-xl p-1.5 max-w-lg animate-fade-in-up delay-700">
               <div className="flex items-center gap-2 flex-1 px-3">
                 <MapPin className="h-4 w-4 text-white/50 shrink-0" />
@@ -276,7 +345,6 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* Popular cities quick links */}
             <div className="flex flex-wrap gap-2 mt-4 animate-fade-in-up delay-800">
               <span className="text-white/40 text-xs self-center">
                 Popular:
@@ -293,7 +361,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right — Review carousel (desktop) */}
           <div className="hidden lg:flex flex-col h-72 animate-fade-in delay-600">
             <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-4">
               What students say
@@ -301,7 +368,6 @@ export default function HomePage() {
             <ReviewCarousel />
           </div>
 
-          {/* Mobile reviews strip */}
           <div className="lg:hidden mt-2 animate-fade-in-up delay-600">
             <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-4">
               What students say
@@ -366,7 +432,7 @@ export default function HomePage() {
               Featured Properties
             </h2>
             <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
-              Handpicked, highly-rated accommodations
+              Latest accommodations added by verified owners
             </p>
           </div>
           <button
@@ -381,10 +447,14 @@ export default function HomePage() {
             ? Array.from({ length: 6 }).map((_, i) => (
                 <PropertyCardSkeleton key={i} />
               ))
-            : featuredProperties.length === 0 && (
+            : featuredProperties.length > 0
+              ? featuredProperties.map((property) => (
+                  <PropertyCard key={property._id} property={property} />
+                ))
+              : (
                 <div className="col-span-full text-center py-10 text-muted-foreground">
                   <Building2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  <p>No featured properties yet. Check back soon!</p>
+                  <p>No properties listed yet. Check back soon!</p>
                 </div>
               )}
         </div>
