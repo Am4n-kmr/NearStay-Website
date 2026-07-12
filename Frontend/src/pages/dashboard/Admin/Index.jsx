@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Users, Building2, AlertTriangle, Shield, CheckCircle2, XCircle, Loader2
+  Users, Building2, AlertTriangle, Shield, CheckCircle2, XCircle, Loader2, CreditCard, TrendingUp
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Skeleton } from "../../../components/ui/skeleton";
@@ -43,8 +43,8 @@ export default function AdminDashboard() {
   const statCards = data ? [
     { label: "Total Users", value: data.totalUsers, icon: Users, color: "text-blue-500", href: "/dashboard/admin/users" },
     { label: "Total Properties", value: data.totalProperties, icon: Building2, color: "text-primary", href: "#" },
-    { label: "Pending Approvals", value: data.pendingProperties, icon: Shield, color: "text-amber-500", href: "#" },
-    { label: "Open Complaints", value: data.pendingComplaints, icon: AlertTriangle, color: "text-destructive", href: "#" },
+    { label: "Paid Bookings", value: data.totalPayments, icon: CreditCard, color: "text-emerald-500", href: "/dashboard/admin/bookings" },
+    { label: "Total Revenue", value: `₹${(data.totalRevenue ?? 0).toLocaleString("en-IN")}`, icon: TrendingUp, color: "text-violet-500", href: "/dashboard/admin/bookings" },
   ] : [];
 
   const pendingProperties = data?.pendingProperties || [];
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statCards.map(({ label, value, icon: Icon, color, href }) => (
-              <Link key={label} to={href} className="bg-card border border-border rounded-xl p-4 hover:border-primary/40 transition-colors">
+              <Link key={label} to={href} className="dashboard-card dashboard-card-hover p-4 text-left">
                 <div className="flex items-center justify-between mb-2">
                   <Icon className={`h-5 w-5 ${color}`} />
                   <span className="text-2xl font-bold">{value}</span>
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
         )}
 
         <div className="grid md:grid-cols-2 gap-5">
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h2 className="font-semibold text-sm">Pending Property Approvals</h2>
               <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{data?.pendingPropertiesCount ?? 0}</span>
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card overflow-hidden">
             <div className="px-4 py-3 border-b border-border">
               <h2 className="font-semibold text-sm">Recent Complaints</h2>
             </div>

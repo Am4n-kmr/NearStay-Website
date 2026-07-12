@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Search, SlidersHorizontal, X, MapPin, Star, ShieldCheck } from "lucide-react";
 import { propertyApi } from "../lib/api";
 import { useAuth } from "../hooks/use-auth";
+import { getDashboardBasePath } from "../lib/dashboard";
 
 function PropertyCardSkeleton() {
   return (
@@ -40,14 +41,14 @@ function NavUserMenu() {
     );
   }
 
-  const dashboardPath = `/dashboard/${user.role}`;
+  const dashboardPath = getDashboardBasePath(user.role);
 
   return (
     <button
       onClick={() => navigate(dashboardPath)}
       className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors group"
     >
-      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs group-hover:bg-primary/20 transition-colors">
+      <div className="profile-avatar w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shadow-sm">
         {user.fullName?.charAt(0) || "U"}
       </div>
       <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>

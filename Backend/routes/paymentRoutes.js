@@ -2,10 +2,12 @@ import express from "express";
 import {
   createPaymentOrder,
   verifyPayment,
+  createDevOrder,
   getBookingPayments,
   getMyPayments,
   processRefund,
   getAllPayments,
+  reconcileBookingPayment,
 } from "../controllers/paymentController.js";
 import authenticate from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/auth.js";
@@ -18,6 +20,9 @@ router.post("/create-order", authenticate, createPaymentOrder);
 // Verify payment
 router.post("/verify", authenticate, verifyPayment);
 
+// Reconcile payment for a booking
+router.post("/reconcile/:bookingId", authenticate, reconcileBookingPayment);
+
 // Get payments for a booking
 router.get("/booking/:bookingId", authenticate, getBookingPayments);
 
@@ -29,5 +34,8 @@ router.patch("/:paymentId/refund", authenticate, authorizeRoles("owner", "admin"
 
 // Get all payments (admin only)
 router.get("/all", authenticate, authorizeRoles("admin"), getAllPayments);
+
+// Dev-only route to create a Razorpay order without DB writes
+router.post("/dev-create-order", createDevOrder);
 
 export default router;

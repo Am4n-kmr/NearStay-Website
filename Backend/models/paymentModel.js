@@ -37,6 +37,11 @@ const paymentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    gatewayOrderId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     transactionId: {
       type: String,
       default: null,

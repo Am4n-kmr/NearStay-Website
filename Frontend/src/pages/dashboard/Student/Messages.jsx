@@ -203,7 +203,7 @@ export default function StudentMessages() {
 
   return (
     <DashboardLayout title="Messages">
-      <div className="h-[calc(100vh-8rem)] flex bg-card border border-border rounded-xl overflow-hidden">
+      <div className="h-[calc(100vh-8rem)] flex dashboard-card overflow-hidden">
         {/* Chat list */}
         <div className={`w-full md:w-80 border-r border-border flex flex-col ${selectedChat ? "hidden md:flex" : "flex"}`}>
           <div className="p-4 border-b border-border">

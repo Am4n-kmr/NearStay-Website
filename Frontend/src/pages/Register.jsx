@@ -30,7 +30,7 @@ export default function RegisterPage() {
         password: data.password,
         phone: data.phone || "",
         gender: "other",
-        role: role === "owner" ? "owner" : "tenant",
+        role: role === "owner" ? "owner" : "student",
       };
       const res = await authApi.register(payload);
       localStorage.setItem("user", JSON.stringify(res.savedUser || res.user));
@@ -48,9 +48,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center px-6 py-12">
-      <div className="max-w-xl w-full mx-auto mx-auto shadow-[0px_5px_15px_rgba(0,0,0,0.35)] p-10 rounded-xl">
+      <div className="max-w-xl w-full mx-auto glass-panel p-10 rounded-3xl">
         <Link to="/" className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-soft">
             <span className="font-bold text-sm text-white">N</span>
           </div>
           {/* <span className="font-bold text-xl text-center">NearStay</span> */}

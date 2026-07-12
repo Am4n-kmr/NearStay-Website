@@ -8,9 +8,11 @@ import {
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import { propertyApi, chatApi, bookingApi } from "../lib/api";
+import { propertyApi, chatApi, bookingApi, paymentApi } from "../lib/api";
+import { openRazorpayCheckout } from "../lib/razorpay";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/use-auth";
+import { getDashboardBasePath } from "../lib/dashboard";
 
 const genderLabels = { male: "Boys", female: "Girls", any: "Co-ed" };
 
@@ -42,14 +44,14 @@ function NavUserMenu() {
     );
   }
 
-  const dashboardPath = `/dashboard/${user.role}`;
+  const dashboardPath = getDashboardBasePath(user.role);
 
   return (
     <button
       onClick={() => navigate(dashboardPath)}
       className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors group"
     >
-      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs group-hover:bg-primary/20 transition-colors">
+      <div className="profile-avatar w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shadow-sm">
         {user.fullName?.charAt(0) || "U"}
       </div>
       <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>
@@ -84,6 +86,7 @@ export default function PropertyDetailPage() {
   const [property, setProperty] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState({
     moveInDate: "",
     durationMonths: 1,
@@ -120,7 +123,7 @@ export default function PropertyDetailPage() {
     }
     try {
       const chat = await chatApi.getOrCreate({ participantId: property.owner._id, propertyId: property._id });
-      navigate(`/dashboard/${user.role}/messages`);
+      navigate(`${getDashboardBasePath(user.role)}/messages`);
     } catch (error) {
       toast({
         title: "Error",
@@ -140,6 +143,8 @@ export default function PropertyDetailPage() {
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
       const booking = await bookingApi.create({
         propertyId: property._id,
@@ -147,18 +152,76 @@ export default function PropertyDetailPage() {
         durationMonths: bookingData.durationMonths,
         notes: bookingData.notes,
       });
-      toast({
-        title: "Success",
-        description: "Booking request sent successfully!",
+
+      const totalAmount =
+        property.rent * bookingData.durationMonths + (property.securityDeposit || 0);
+
+      const orderResp = await paymentApi.createOrder({
+        bookingId: booking._id,
+        paymentMethod: "razorpay",
+        paymentType: "full",
+        amount: totalAmount,
       });
+
+      if (!orderResp?.order?.id) {
+        throw new Error("Failed to create payment order");
+      }
+
+      const razorpayKey = orderResp.key || import.meta.env.VITE_RAZORPAY_KEY;
+
+      if (!razorpayKey) {
+        toast({
+          title: "Booking created",
+          description: "Payment gateway is not configured. Complete payment from My Bookings.",
+        });
+        setShowBookingForm(false);
+        navigate("/dashboard/student/bookings");
+        return;
+      }
+
       setShowBookingForm(false);
-      navigate(`/dashboard/student/bookings`);
+
+      try {
+        await openRazorpayCheckout({
+          key: razorpayKey,
+          amount: orderResp.amount,
+          currency: orderResp.currency || "INR",
+          orderId: orderResp.order.id,
+          description: `Booking payment for ${property.title}`,
+          prefill: {
+            name: user.fullName,
+            email: user.email,
+          },
+          onSuccess: async (response) => {
+            await paymentApi.verify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+          },
+        });
+
+        toast({
+          title: "Payment successful",
+          description: "Your booking and payment are complete.",
+        });
+        navigate("/dashboard/student/bookings");
+      } catch (paymentError) {
+        toast({
+          title: paymentError.message === "Payment cancelled" ? "Payment cancelled" : "Payment failed",
+          description: "Your booking was saved. You can complete payment from My Bookings.",
+          variant: "destructive",
+        });
+        navigate("/dashboard/student/bookings");
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create booking",
+        description: error.response?.data?.message || error.message || "Failed to create booking",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -537,8 +600,15 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  Confirm Booking
+                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Pay & Book"
+                  )}
                 </Button>
                 <Button
                   type="button"

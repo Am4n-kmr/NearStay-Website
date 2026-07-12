@@ -1,0 +1,13 @@
+{
+  "watch": [
+    "./"
+  ],
+  "ignore": [
+    "node_modules",
+    "*.log",
+    "../Frontend",
+    ".git"
+  ],
+  "ext": "js,json",
+  "delay": "250"
+}

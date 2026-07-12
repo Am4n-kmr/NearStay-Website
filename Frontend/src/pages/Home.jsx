@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { propertyApi } from "../lib/api";
 import { useAuth } from "../hooks/use-auth";
+import { getDashboardBasePath } from "../lib/dashboard";
 
 const POPULAR_CITIES = ["Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad"];
 
@@ -128,7 +129,7 @@ function PropertyCard({ property }) {
   return (
     <div
       onClick={() => navigate(`/property/${property._id}`)}
-      className="rounded-xl border border-border bg-card overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 group"
+      className="dashboard-card dashboard-card-hover overflow-hidden cursor-pointer group"
     >
       <div className="h-48 overflow-hidden bg-muted relative">
         <img
@@ -202,14 +203,14 @@ function NavUserMenu() {
     );
   }
 
-  const dashboardPath = `/dashboard/${user.role}`;
+  const dashboardPath = getDashboardBasePath(user.role);
 
   return (
     <button
       onClick={() => navigate(dashboardPath)}
       className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors group"
     >
-      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs group-hover:bg-primary/20 transition-colors">
+      <div className="profile-avatar w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shadow-sm">
         {user.fullName?.charAt(0) || "U"}
       </div>
       <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>
@@ -345,7 +346,7 @@ export default function HomePage() {
 
       {/* ── HERO ── */}
       <section
-        className="relative overflow-hidden animate-fade-in"
+        className="relative overflow-hidden animate-fade-in hero-gradient"
         style={{
           background:
             "linear-gradient(135deg, #0f0c29 0%, #1a1060 40%, #24243e 100%)",
@@ -392,21 +393,21 @@ export default function HomePage() {
               Browse thousands of PGs, hostels, and shared rooms across India.
             </p>
 
-            <div className="flex gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-xl p-1.5 max-w-lg animate-fade-in-up delay-700">
-              <div className="flex items-center gap-2 flex-1 px-3">
-                <MapPin className="h-4 w-4 text-white/50 shrink-0" />
+            <div className="flex gap-2 bg-white/10 backdrop-blur-lg ring-1 ring-white/15 rounded-3xl p-1.5 max-w-lg animate-fade-in-up delay-700 shadow-soft">
+              <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-3xl bg-white/10">
+                <MapPin className="h-4 w-4 text-white/60 shrink-0" />
                 <input
                   type="text"
                   placeholder="City, college or area..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="flex-1 bg-transparent text-white placeholder-white/40 text-sm outline-none min-w-0"
+                  className="flex-1 bg-transparent text-white placeholder-white/50 text-sm outline-none min-w-0"
                 />
               </div>
               <button
                 onClick={handleSearch}
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-all hover:scale-105 active:scale-95 shrink-0"
+                className="flex items-center gap-2 bg-linear-to-r from-primary to-indigo-500 hover:from-indigo-500 hover:to-primary text-white text-sm font-semibold px-4 py-2.5 rounded-3xl transition-all hover:scale-105 active:scale-95 shrink-0 shadow-lg"
               >
                 <Search className="h-4 w-4" />
                 <span className="hidden sm:inline">Search</span>
@@ -446,8 +447,8 @@ export default function HomePage() {
       </section>
 
       {/* ── Stats bar ── */}
-      <section className="bg-card border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 py-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <section className="bg-background/80 border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
           {[
             { value: "10,000+", label: "Happy Students" },
             { value: "2,500+", label: "Verified Properties" },
@@ -456,7 +457,7 @@ export default function HomePage() {
           ].map(({ value, label }) => (
             <div
               key={label}
-              className="py-1 transition-transform hover:scale-105 duration-200"
+              className="glass-panel p-5 rounded-[1.25rem] shadow-soft transition-transform hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="text-xl sm:text-2xl font-bold text-primary">
                 {value}
@@ -475,7 +476,7 @@ export default function HomePage() {
           {TRUST_BADGES.map(({ icon: Icon, label, desc }, i) => (
             <div
               key={label}
-              className="flex flex-col items-center text-center p-4 sm:p-5 rounded-xl bg-card border border-border hover:border-primary/40 transition-all duration-200 hover:shadow-md hover:-translate-y-1 cursor-default"
+              className="dashboard-card dashboard-card-hover flex flex-col items-center text-center p-5 rounded-3xl"
               style={{ animation: `fadeInUp 0.5s ease-out ${i * 0.1}s both` }}
             >
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -505,7 +506,7 @@ export default function HomePage() {
           </div>
           <button
             onClick={() => navigate("/search")}
-            className="flex items-center gap-1 text-primary text-sm hover:underline transition-colors hover:scale-105 active:scale-95"
+            className="flex items-center gap-1 text-primary text-sm hover:text-[#2e74ff] transition-all hover:scale-105 active:scale-95"
           >
             View all <ArrowRight className="h-3.5 w-3.5" />
           </button>

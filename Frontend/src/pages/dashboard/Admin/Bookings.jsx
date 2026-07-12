@@ -72,7 +72,7 @@ export default function AdminBookings() {
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div key={i} className="dashboard-card p-4 space-y-2">
                 <Skeleton className="h-5 w-1/2" />
                 <Skeleton className="h-4 w-3/4" />
               </div>
@@ -85,7 +85,7 @@ export default function AdminBookings() {
                 const sc = statusConfig[b.status] ?? { label: b.status, color: "bg-muted text-muted-foreground", icon: Clock };
                 const StatusIcon = sc.icon;
                 return (
-                  <div key={b._id} className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors">
+                  <div key={b._id} className="dashboard-card dashboard-card-hover p-4">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm">{b.tenant?.fullName || "Student"}</h3>

@@ -119,7 +119,7 @@ export default function LoginPage() {
           </div>
 
           {/* Testimonial */}
-          <div className="bg-white/[0.08] backdrop-blur border border-white/15 rounded-2xl p-5">
+          <div className="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-5">
             <div className="flex gap-0.5 mb-3">
               {Array.from({ length: TESTIMONIAL.rating }).map((_, i) => (
                 <Star
@@ -156,13 +156,13 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-16 bg-background">
         {/* Mobile logo */}
         <div className="flex items-center gap-2 mb-10 lg:hidden">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-soft">
             <span className="font-bold text-sm text-white">N</span>
           </div>
           <span className="font-bold text-xl tracking-tight">NearStay</span>
         </div>
 
-        <div className="max-w-lg w-full mx-auto shadow-[0px_5px_15px_rgba(0,0,0,0.35)] p-10 rounded-xl">
+        <div className="max-w-lg w-full mx-auto glass-panel p-10 rounded-3xl">
           <h1 className="text-2xl font-bold mb-1 tracking-tight">
             Welcome back
           </h1>

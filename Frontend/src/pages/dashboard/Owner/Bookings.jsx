@@ -5,7 +5,7 @@ import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { Skeleton } from "../../../components/ui/skeleton";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { bookingApi } from "../../../lib/api";
+import { bookingApi, paymentApi } from "../../../lib/api";
 import { useToast } from "../../../hooks/use-toast";
 
 const STATUS_TABS = ["all", "pending", "accepted", "confirmed", "completed", "cancelled", "rejected"];
@@ -33,7 +33,25 @@ export default function OwnerBookings() {
     setIsLoading(true);
     try {
       const params = status !== "all" ? { status } : {};
-      const data = await bookingApi.getOwnerBookings(params);
+      let data = await bookingApi.getOwnerBookings(params);
+
+      const unpaid = data.filter(
+        (b) => b.paymentStatus !== "paid" && !["cancelled", "rejected"].includes(b.status)
+      );
+
+      for (const booking of unpaid) {
+        try {
+          const result = await paymentApi.reconcile(booking._id);
+          if (result?.booking) {
+            data = data.map((b) =>
+              b._id === booking._id ? { ...b, ...result.booking } : b
+            );
+          }
+        } catch {
+          // No captured payment on Razorpay yet
+        }
+      }
+
       setBookings(data);
     } catch (error) {
       toast({
@@ -85,7 +103,7 @@ export default function OwnerBookings() {
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div key={i} className="dashboard-card p-4 space-y-2">
                 <Skeleton className="h-5 w-1/2" />
                 <Skeleton className="h-4 w-3/4" />
               </div>
@@ -97,7 +115,7 @@ export default function OwnerBookings() {
               const sc = statusConfig[b.status] ?? { label: b.status, color: "bg-muted text-muted-foreground", icon: Clock };
               const StatusIcon = sc.icon;
               return (
-                <div key={b._id} className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors">
+                <div key={b._id} className="dashboard-card dashboard-card-hover p-4">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-sm">{b.tenant?.fullName || "Student"}</h3>
