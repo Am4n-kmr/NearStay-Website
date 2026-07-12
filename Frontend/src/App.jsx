@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
+import { AuthProvider, useAuth } from "./hooks/use-auth";
 
 import HomePage from "./pages/Home";
 import LoginPage from "./pages/Login";
@@ -33,52 +34,59 @@ import AdminComplaints from "./pages/dashboard/Admin/Complaints";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }) {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user) return <Navigate to="/login" />;
+function ProtectedRoute({ children, allowedRoles }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
   return children;
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/property/:id" element={<PropertyDetailPage />} />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/property/:id" element={<PropertyDetailPage />} />
 
-          {/* Student Dashboard */}
-          <Route path="/dashboard/student" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/student/bookings" element={<ProtectedRoute><StudentBookings /></ProtectedRoute>} />
-          <Route path="/dashboard/student/complaints" element={<ProtectedRoute><StudentComplaints /></ProtectedRoute>} />
-          <Route path="/dashboard/student/messages" element={<ProtectedRoute><StudentMessages /></ProtectedRoute>} />
-          <Route path="/dashboard/student/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
-          <Route path="/dashboard/student/wishlist" element={<ProtectedRoute><StudentWishlist /></ProtectedRoute>} />
+            {/* Student Dashboard */}
+            <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/student/bookings" element={<ProtectedRoute allowedRoles={["student"]}><StudentBookings /></ProtectedRoute>} />
+            <Route path="/dashboard/student/complaints" element={<ProtectedRoute allowedRoles={["student"]}><StudentComplaints /></ProtectedRoute>} />
+            <Route path="/dashboard/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><StudentMessages /></ProtectedRoute>} />
+            <Route path="/dashboard/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
+            <Route path="/dashboard/student/wishlist" element={<ProtectedRoute allowedRoles={["student"]}><StudentWishlist /></ProtectedRoute>} />
 
-          {/* Owner Dashboard */}
-          <Route path="/dashboard/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/bookings" element={<ProtectedRoute><OwnerBookings /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/complaints" element={<ProtectedRoute><OwnerComplaints /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/messages" element={<ProtectedRoute><OwnerMessages /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/profile" element={<ProtectedRoute><OwnerProfile /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/properties/new" element={<ProtectedRoute><OwnerAddProperty /></ProtectedRoute>} />
-          <Route path="/dashboard/owner/properties/:id/edit" element={<ProtectedRoute><OwnerEditProperty /></ProtectedRoute>} />
+            {/* Owner Dashboard */}
+            <Route path="/dashboard/owner" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/bookings" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerBookings /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/complaints" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerComplaints /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/messages" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerMessages /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/profile" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerProfile /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/properties" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerProperties /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/properties/new" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerAddProperty /></ProtectedRoute>} />
+            <Route path="/dashboard/owner/properties/:id/edit" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerEditProperty /></ProtectedRoute>} />
 
-          {/* Admin Dashboard */}
-          <Route path="/dashboard/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/properties" element={<ProtectedRoute><AdminProperties /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/bookings" element={<ProtectedRoute><AdminBookings /></ProtectedRoute>} />
-          <Route path="/dashboard/admin/complaints" element={<ProtectedRoute><AdminComplaints /></ProtectedRoute>} />
+            {/* Admin Dashboard */}
+            <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/users" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/properties" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProperties /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/bookings" element={<ProtectedRoute allowedRoles={["admin"]}><AdminBookings /></ProtectedRoute>} />
+            <Route path="/dashboard/admin/complaints" element={<ProtectedRoute allowedRoles={["admin"]}><AdminComplaints /></ProtectedRoute>} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-      <Toaster richColors position="top-right" />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster richColors position="top-right" />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

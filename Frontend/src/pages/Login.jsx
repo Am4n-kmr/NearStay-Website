@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { Eye, EyeOff, ShieldCheck, Star } from "lucide-react";
 import { authApi } from "../lib/api";
 import { toast } from "sonner";
+import { useAuth } from "../hooks/use-auth";
 
 const TESTIMONIAL = {
   text: "Found my PG within 2 days. No broker fees, no hidden charges. The owner was super transparent. NearStay is the best way to find student housing in India.",
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login: authLogin } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -25,14 +27,12 @@ export default function LoginPage() {
     setError("");
     try {
       const res = await authApi.login(data);
-      localStorage.setItem("user", JSON.stringify(res.user || res.savedUser));
-      localStorage.setItem("token", res.token);
       const user = res.user || res.savedUser;
+      authLogin(user, res.token);
       const role = user?.role || "student";
       toast.success("Logged in successfully!");
       if (role === "admin") navigate("/dashboard/admin");
-      else if (role === "owner") navigate("/dashboard/owner");
-      else navigate("/dashboard/student");
+      else navigate("/");
     } catch (err) {
       setError(err?.response?.data?.message ?? "Invalid email or password");
     } finally {

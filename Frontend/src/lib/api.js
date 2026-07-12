@@ -126,4 +126,11 @@ export const adminApi = {
   moderateProperty: (id, isApproved) => api.patch(`/admin/properties/${id}/moderate`, { isApproved }).then((r) => r.data),
 };
 
+// ─── Dashboard ───
+export const dashboardApi = {
+  student: () => api.get("/dashboard/student").then((r) => r.data),
+  owner: () => api.get("/dashboard/owner").then((r) => r.data),
+  admin: () => api.get("/dashboard/admin").then((r) => r.data),
+};
+
 export default api;

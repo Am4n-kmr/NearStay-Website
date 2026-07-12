@@ -10,6 +10,7 @@ import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
 import { propertyApi, chatApi, bookingApi } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
+import { useAuth } from "../hooks/use-auth";
 
 const genderLabels = { male: "Boys", female: "Girls", any: "Co-ed" };
 
@@ -28,6 +29,34 @@ function StarRating({ rating, max = 5, size = "sm" }) {
   );
 }
 
+function NavUserMenu() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <>
+        <button onClick={() => navigate("/login")} className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Sign in</button>
+        <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">Get started</button>
+      </>
+    );
+  }
+
+  const dashboardPath = `/dashboard/${user.role}`;
+
+  return (
+    <button
+      onClick={() => navigate(dashboardPath)}
+      className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors group"
+    >
+      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs group-hover:bg-primary/20 transition-colors">
+        {user.fullName?.charAt(0) || "U"}
+      </div>
+      <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>
+    </button>
+  );
+}
+
 function Navbar() {
   const navigate = useNavigate();
   return (
@@ -40,8 +69,7 @@ function Navbar() {
           <span className="font-bold text-lg tracking-tight">NearStay</span>
         </a>
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/login")} className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Sign in</button>
-          <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">Get started</button>
+          <NavUserMenu />
         </div>
       </div>
     </nav>

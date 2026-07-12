@@ -11,10 +11,8 @@ import {
   ChevronLeft,
   Menu,
   X,
-  Bell,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import NotificationBell from "./NotificationBell";
 
 const studentNavItems = [
   { label: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
@@ -170,17 +168,11 @@ export default function DashboardLayout({ children, title }) {
               <h1 className="font-semibold text-sm truncate">{title}</h1>
             )}
           </div>
-          <NotificationBell />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
-
-        {/* Desktop notification bell */}
-        <div className="hidden md:block absolute top-4 right-4">
-          <NotificationBell />
-        </div>
       </div>
     </div>
   );

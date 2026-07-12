@@ -5,6 +5,7 @@ import {
   ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Quote
 } from "lucide-react";
 import { propertyApi } from "../lib/api";
+import { useAuth } from "../hooks/use-auth";
 
 const POPULAR_CITIES = ["Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad"];
 
@@ -178,6 +179,84 @@ function PropertyCard({ property }) {
   );
 }
 
+function NavUserMenu() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <>
+        <button
+          onClick={() => navigate("/login")}
+          className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+        >
+          Sign in
+        </button>
+        <button
+          onClick={() => navigate("/register")}
+          className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-[#5548e3] text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20"
+        >
+          Get started
+        </button>
+      </>
+    );
+  }
+
+  const dashboardPath = `/dashboard/${user.role}`;
+
+  return (
+    <button
+      onClick={() => navigate(dashboardPath)}
+      className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors group"
+    >
+      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs group-hover:bg-primary/20 transition-colors">
+        {user.fullName?.charAt(0) || "U"}
+      </div>
+      <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>
+    </button>
+  );
+}
+
+function CtaSection() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Only show to owners and guests — hide from students
+  if (user?.role === "student") return null;
+
+  return (
+    <section
+      className="relative overflow-hidden text-white py-14 sm:py-16"
+      style={{
+        background:
+          "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
+      }}
+    >
+      <div
+        className="absolute top-[-20%] right-[-5%] w-80 h-80 rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
+        style={{
+          background: "radial-gradient(circle, #6366f1, transparent 70%)",
+        }}
+      />
+      <div className="relative max-w-7xl mx-auto px-4 text-center">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 animate-fade-in-up">
+          Own a property? List it on NearStay
+        </h2>
+        <p className="text-white/70 mb-6 max-w-lg mx-auto text-sm sm:text-base animate-fade-in-up delay-200">
+          Reach thousands of verified students looking for accommodation. Get
+          bookings within days.
+        </p>
+        <button
+          onClick={() => navigate(user ? "/dashboard/owner/properties" : "/register")}
+          className="bg-white text-indigo-700 hover:bg-white/90 active:scale-95 transition-all font-semibold px-6 py-3 rounded-lg text-sm shadow-lg hover:shadow-xl hover:scale-105"
+        >
+          {user ? "List your property" : "List your property for free"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [featuredProperties, setFeaturedProperties] = useState([]);
@@ -259,18 +338,7 @@ export default function HomePage() {
             >
               Browse
             </button>
-            <button
-              onClick={() => navigate("/login")}
-              className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
-            >
-              Sign in
-            </button>
-            <button
-              onClick={() => navigate("/register")}
-              className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-[#5548e3] text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20"
-            >
-              Get started
-            </button>
+            <NavUserMenu />
           </div>
         </div>
       </nav>
@@ -526,36 +594,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA Banner ── */}
-      <section
-        className="relative overflow-hidden text-white py-14 sm:py-16"
-        style={{
-          background:
-            "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
-        }}
-      >
-        <div
-          className="absolute top-[-20%] right-[-5%] w-80 h-80 rounded-full opacity-20 blur-3xl pointer-events-none animate-pulse-glow"
-          style={{
-            background: "radial-gradient(circle, #6366f1, transparent 70%)",
-          }}
-        />
-        <div className="relative max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 animate-fade-in-up">
-            Own a property? List it on NearStay
-          </h2>
-          <p className="text-white/70 mb-6 max-w-lg mx-auto text-sm sm:text-base animate-fade-in-up delay-200">
-            Reach thousands of verified students looking for accommodation. Get
-            bookings within days.
-          </p>
-          <button
-            onClick={() => navigate("/register")}
-            className="bg-white text-indigo-700 hover:bg-white/90 active:scale-95 transition-all font-semibold px-6 py-3 rounded-lg text-sm shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            List your property for free
-          </button>
-        </div>
-      </section>
+      {/* ── CTA Banner (only show to non-owners) ── */}
+      <CtaSection />
 
       {/* ── Footer ── */}
       <footer className="border-t border-border bg-card text-muted-foreground animate-fade-in">

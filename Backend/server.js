@@ -91,8 +91,8 @@ io.on("connection", (socket) => {
       // Populate sender info
       const populated = await saved.populate("sender", "fullName profileImage");
 
-      // Emit to all users in the chat room
-      io.to(`chat:${chatId}`).emit("new-message", populated);
+      // Emit to all OTHER users in the chat room (sender already has optimistic update)
+      socket.to(`chat:${chatId}`).emit("new-message", populated);
 
       // Send notification to other participants
       const chat = await Chat.findById(chatId);

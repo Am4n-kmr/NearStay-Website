@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Search, SlidersHorizontal, X, MapPin, Star, ShieldCheck } from "lucide-react";
 import { propertyApi } from "../lib/api";
+import { useAuth } from "../hooks/use-auth";
 
 function PropertyCardSkeleton() {
   return (
@@ -13,6 +14,44 @@ function PropertyCardSkeleton() {
         <div className="h-4 bg-muted rounded w-1/3 mt-3 skeleton" />
       </div>
     </div>
+  );
+}
+
+function NavUserMenu() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <>
+        <button
+          onClick={() => navigate("/login")}
+          className="text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+        >
+          Sign in
+        </button>
+        <button
+          onClick={() => navigate("/register")}
+          className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-[#5548e3] text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20"
+        >
+          Get started
+        </button>
+      </>
+    );
+  }
+
+  const dashboardPath = `/dashboard/${user.role}`;
+
+  return (
+    <button
+      onClick={() => navigate(dashboardPath)}
+      className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted transition-colors group"
+    >
+      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs group-hover:bg-primary/20 transition-colors">
+        {user.fullName?.charAt(0) || "U"}
+      </div>
+      <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>
+    </button>
   );
 }
 
@@ -28,8 +67,7 @@ function Navbar() {
           <span className="font-bold text-lg tracking-tight">NearStay</span>
         </a>
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/login")} className=" bg-black text-white text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-muted transition-colors">Sign out</button>
-          {/* <button onClick={() => navigate("/register")} className="text-sm font-semibold px-4 py-1.5 rounded-lg bg-black text-white hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20">Get started</button> */}
+          <NavUserMenu />
         </div>
       </div>
     </nav>
