@@ -102,7 +102,7 @@ export default function OwnerProperties() {
                     {p.maxPeople > 0 && (
                       <>
                         <span>•</span>
-                        <span>Up to {p.maxPeople}/room</span>
+                        <span>Up to {p.maxPeople} person / room</span>
                       </>
                     )}
                   </div>

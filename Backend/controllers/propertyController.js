@@ -116,6 +116,7 @@ export const createProperty = async (req, res) => {
       rent,
       securityDeposit,
       availableRooms,
+      maxPeople,
       amenities,
       images,
     } = req.body;
@@ -133,6 +134,7 @@ export const createProperty = async (req, res) => {
       rent,
       securityDeposit,
       availableRooms,
+      maxPeople,
       amenities,
       images,
     });

@@ -87,7 +87,7 @@ export default function AdminProperties() {
                       <td className="px-4 py-3">
                         <div className="min-w-0">
                           <p className="font-medium truncate">{p.title}</p>
-                          <p className="text-xs text-muted-foreground">{p.city}, {p.state} • {p.propertyType}{p.maxPeople > 0 ? ` • Up to ${p.maxPeople}/room` : ""}</p>
+                          <p className="text-xs text-muted-foreground">{p.city}, {p.state} • {p.propertyType}{p.maxPeople > 0 ? ` • Up to ${p.maxPeople} person / room` : ""}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">

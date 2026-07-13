@@ -80,7 +80,10 @@ export default function EditProperty() {
     }
   };
 
-  const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const update = (key) => (e) => {
+    const value = e.target.type === "number" ? e.target.valueAsNumber : e.target.value;
+    setForm((f) => ({ ...f, [key]: isNaN(value) ? "" : value }));
+  };
 
   if (loading) {
     return (

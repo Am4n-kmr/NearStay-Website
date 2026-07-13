@@ -305,7 +305,7 @@ function PropertyCard({ property }) {
         </div>
         {property.maxPeople > 0 && (
           <div className="text-xs text-muted-foreground mt-1">
-            Up to {property.maxPeople} people
+            Up to {property.maxPeople} person / room
           </div>
         )}
       </div>

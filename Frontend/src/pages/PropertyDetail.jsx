@@ -465,7 +465,7 @@ export default function PropertyDetailPage() {
                 </div>
                 {property.maxPeople > 0 && (
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    Up to {property.maxPeople} people per room
+                    Up to {property.maxPeople} person / room
                   </div>
                 )}
               </div>

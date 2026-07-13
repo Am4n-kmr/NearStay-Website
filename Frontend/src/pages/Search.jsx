@@ -417,7 +417,7 @@ export default function SearchPage() {
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="bg-muted px-2 py-0.5 rounded">{p.propertyType}</span>
                         <span>{p.availableRooms} room{p.availableRooms > 1 ? "s" : ""}</span>
-                        {p.maxPeople > 0 && <span>Up to {p.maxPeople}</span>}
+                        {p.maxPeople > 0 && <span>Up to {p.maxPeople} person / room</span>}
                         <span>{p.genderPreference === "male" ? "Boys" : p.genderPreference === "female" ? "Girls" : "Co-ed"}</span>
                       </div>
                     </div>
