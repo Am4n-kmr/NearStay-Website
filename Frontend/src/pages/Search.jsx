@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, X, MapPin, Star, ShieldCheck } from "lucide-
 import { propertyApi } from "../lib/api";
 import { useAuth } from "../hooks/use-auth";
 import { getDashboardBasePath } from "../lib/dashboard";
+import logo from "../assets/logo.png";
 
 function PropertyCardSkeleton() {
   return (
@@ -61,11 +62,21 @@ function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-4">
-        <a href="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110">
-            <span className="font-bold text-sm text-white">N</span>
-          </div>
-          <span className="font-bold text-lg tracking-tight">NearStay</span>
+        <a href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <img
+            src={logo}
+            alt="NearStay Logo"
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+          <h1 className="flex items-center select-none">
+            <span className="font-poppins text-2xl font-extrabold tracking-tight text-slate-900">
+              Near
+            </span>
+            <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+              <span className="text-[2rem]">S</span>
+              <span className="text-2xl">tay</span>
+            </span>
+          </h1>
         </a>
         <div className="flex items-center gap-2">
           <NavUserMenu />
@@ -406,6 +417,7 @@ export default function SearchPage() {
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="bg-muted px-2 py-0.5 rounded">{p.propertyType}</span>
                         <span>{p.availableRooms} room{p.availableRooms > 1 ? "s" : ""}</span>
+                        {p.maxPeople > 0 && <span>Up to {p.maxPeople}</span>}
                         <span>{p.genderPreference === "male" ? "Boys" : p.genderPreference === "female" ? "Girls" : "Co-ed"}</span>
                       </div>
                     </div>

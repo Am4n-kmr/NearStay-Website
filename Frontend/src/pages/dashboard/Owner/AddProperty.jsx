@@ -16,7 +16,7 @@ export default function AddProperty() {
   const [form, setForm] = useState({
     title: "", description: "", propertyType: "PG", genderPreference: "any",
     address: "", city: "", state: "", pincode: "",
-    rent: "", securityDeposit: "", availableRooms: "1",
+    rent: "", securityDeposit: "", availableRooms: "1", maxPeople: "1",
     amenities: [], images: [],
   });
 
@@ -36,6 +36,7 @@ export default function AddProperty() {
         rent: Number(form.rent),
         securityDeposit: Number(form.securityDeposit) || 0,
         availableRooms: Number(form.availableRooms),
+        maxPeople: Number(form.maxPeople) || 1,
       });
       toast.success("Property listed successfully! Awaiting admin approval.");
       navigate("/dashboard/owner/properties");
@@ -100,6 +101,10 @@ export default function AddProperty() {
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Available Rooms</label>
               <input type="number" min="1" className="w-full h-10 px-3 text-sm border rounded-lg" value={form.availableRooms} onChange={update("availableRooms")} required />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Max People per Room</label>
+              <input type="number" min="1" className="w-full h-10 px-3 text-sm border rounded-lg" value={form.maxPeople} onChange={update("maxPeople")} required />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Monthly Rent (₹)</label>

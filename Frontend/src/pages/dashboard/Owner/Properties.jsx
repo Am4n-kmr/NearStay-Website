@@ -99,6 +99,12 @@ export default function OwnerProperties() {
                     <span>{p.propertyType}</span>
                     <span>•</span>
                     <span>{p.availableRooms} rooms</span>
+                    {p.maxPeople > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>Up to {p.maxPeople}/room</span>
+                      </>
+                    )}
                   </div>
                   <div className="flex gap-2 pt-1">
                     <Link to={`/property/${p._id}`}>

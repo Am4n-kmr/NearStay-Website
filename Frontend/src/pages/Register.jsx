@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { Eye, EyeOff, GraduationCap, Building2 } from "lucide-react";
 import { authApi } from "../lib/api";
 import { toast } from "sonner";
+import logo from "../assets/logo.png";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -49,12 +50,21 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center px-6 py-12">
       <div className="max-w-xl w-full mx-auto glass-panel p-10 rounded-3xl">
-        <Link to="/" className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-soft">
-            <span className="font-bold text-sm text-white">N</span>
-          </div>
-          {/* <span className="font-bold text-xl text-center">NearStay</span> */}
-          <div className="font-bold text-2xl">NearStay</div>
+        <Link to="/" className="flex items-center gap-2.5 mb-8 group">
+          <img
+            src={logo}
+            alt="NearStay Logo"
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+          <h1 className="flex items-center select-none">
+            <span className="font-poppins text-2xl font-extrabold tracking-tight text-slate-900">
+              Near
+            </span>
+            <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+              <span className="text-[2rem]">S</span>
+              <span className="text-2xl">tay</span>
+            </span>
+          </h1>
         </Link>
 
         <h1 className="text-xl font-bold mb-1">Create your account</h1>

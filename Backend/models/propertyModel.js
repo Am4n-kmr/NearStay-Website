@@ -66,6 +66,11 @@ const propertySchema = new mongoose.Schema(
       default: 0,
     },
 
+    maxPeople: {
+      type: Number,
+      default: 1,
+    },
+
     availableRooms: {
       type: Number,
       required: true,

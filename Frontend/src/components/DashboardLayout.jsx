@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { getDashboardBasePath } from "../lib/dashboard";
+import logo from "../assets/logo.png";
 
 const studentNavItems = (base) => [
   { label: "Dashboard", href: base, icon: LayoutDashboard },
@@ -74,11 +75,21 @@ export default function DashboardLayout({ children, title }) {
     <>
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 h-14 border-b border-border shrink-0 bg-background/80 backdrop-blur-sm">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary shadow-soft flex items-center justify-center">
-            <span className="font-bold text-xs text-white">N</span>
-          </div>
-          <span className="font-bold text-base">NearStay</span>
+        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+          <img
+            src={logo}
+            alt="NearStay Logo"
+            className="h-9 w-9 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+          <h1 className="flex items-center select-none">
+            <span className="font-poppins text-xl font-extrabold tracking-tight text-slate-900">
+              Near
+            </span>
+            <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+              <span className="text-[1.6rem]">S</span>
+              <span className="text-xl">tay</span>
+            </span>
+          </h1>
         </Link>
       </div>
 
@@ -142,11 +153,21 @@ export default function DashboardLayout({ children, title }) {
           />
           <div className="relative bg-card w-64 h-full flex flex-col">
             <div className="flex items-center justify-between px-4 h-14 border-b border-border">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="font-bold text-xs text-white">N</span>
-                </div>
-                <span className="font-bold text-base">NearStay</span>
+              <Link to="/" className="flex items-center gap-2.5 group">
+                <img
+                  src={logo}
+                  alt="NearStay Logo"
+                  className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110"
+                />
+                <h1 className="flex items-center select-none">
+                  <span className="font-poppins text-lg font-extrabold tracking-tight text-slate-900">
+                    Near
+                  </span>
+                  <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+                    <span className="text-[1.4rem]">S</span>
+                    <span className="text-lg">tay</span>
+                  </span>
+                </h1>
               </Link>
               <button onClick={() => setSidebarOpen(false)}>
                 <X className="h-5 w-5" />

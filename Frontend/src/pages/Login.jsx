@@ -5,6 +5,7 @@ import { Eye, EyeOff, ShieldCheck, Star } from "lucide-react";
 import { authApi } from "../lib/api";
 import { toast } from "sonner";
 import { useAuth } from "../hooks/use-auth";
+import logo from "../assets/logo.png";
 
 const TESTIMONIAL = {
   text: "Found my PG within 2 days. No broker fees, no hidden charges. The owner was super transparent. NearStay is the best way to find student housing in India.",
@@ -74,13 +75,21 @@ export default function LoginPage() {
         />
 
         {/* Logo */}
-        <div className="relative flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center">
-            <span className="font-bold text-white text-sm">N</span>
-          </div>
-          <span className="font-bold text-white text-xl tracking-tight">
-            NearStay
-          </span>
+        <div className="relative flex items-center gap-2.5 group">
+          <img
+            src={logo}
+            alt="NearStay Logo"
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+          <h1 className="flex items-center select-none">
+            <span className="font-poppins text-2xl font-extrabold tracking-tight text-white">
+              Near
+            </span>
+            <span className="-ml-0.5 font-kaushan leading-none text-[#818CF8]">
+              <span className="text-[2rem]">S</span>
+              <span className="text-2xl">tay</span>
+            </span>
+          </h1>
         </div>
 
         {/* Middle */}
@@ -155,17 +164,35 @@ export default function LoginPage() {
       {/* Right form panel */}
       <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-16 bg-background">
         {/* Mobile logo */}
-        <div className="flex items-center gap-2 mb-10 lg:hidden">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-soft">
-            <span className="font-bold text-sm text-white">N</span>
-          </div>
-          <span className="font-bold text-xl tracking-tight">NearStay</span>
+        <div className="flex items-center gap-2.5 mb-10 lg:hidden group">
+          <img
+            src={logo}
+            alt="NearStay Logo"
+            className="h-9 w-9 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+          <h1 className="flex items-center select-none">
+            <span className="font-poppins text-xl font-extrabold tracking-tight text-slate-900">
+              Near
+            </span>
+            <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+              <span className="text-[1.6rem]">S</span>
+              <span className="text-xl">tay</span>
+            </span>
+          </h1>
         </div>
 
         <div className="max-w-lg w-full mx-auto glass-panel p-10 rounded-3xl">
-          <h1 className="text-2xl font-bold mb-1 tracking-tight">
-            Welcome back
-          </h1>
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Welcome back
+            </h1>
+            <Link
+              to="/"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              ← Home
+            </Link>
+          </div>
           <p className="text-muted-foreground text-sm mb-8">
             Sign in to continue to NearStay
           </p>

@@ -1,35 +1,120 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  Search, MapPin, ShieldCheck, Star, Users, Building2,
-  ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Quote
+  Search,
+  MapPin,
+  ShieldCheck,
+  Star,
+  Users,
+  Building2,
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Quote,
 } from "lucide-react";
 import { propertyApi } from "../lib/api";
 import { useAuth } from "../hooks/use-auth";
 import { getDashboardBasePath } from "../lib/dashboard";
+import logo from "../assets/logo.png";
 
-const POPULAR_CITIES = ["Mumbai", "Delhi", "Bangalore", "Pune", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad"];
+const POPULAR_CITIES = [
+  "Mumbai",
+  "Delhi",
+  "Bangalore",
+  "Pune",
+  "Hyderabad",
+  "Chennai",
+  "Kolkata",
+  "Ahmedabad",
+];
 
 const TRUST_BADGES = [
-  { icon: ShieldCheck, label: "Verified Listings", desc: "Every property is manually reviewed" },
-  { icon: Users, label: "Verified Owners", desc: "ID-verified property owners only" },
+  {
+    icon: ShieldCheck,
+    label: "Verified Listings",
+    desc: "Every property is manually reviewed",
+  },
+  {
+    icon: Users,
+    label: "Verified Owners",
+    desc: "ID-verified property owners only",
+  },
   { icon: Star, label: "Honest Reviews", desc: "Reviews from real tenants" },
-  { icon: CheckCircle2, label: "Secure Payments", desc: "Protected by Razorpay" },
+  {
+    icon: CheckCircle2,
+    label: "Secure Payments",
+    desc: "Protected by Razorpay",
+  },
 ];
 
 const HOW_IT_WORKS = [
-  { step: "01", title: "Search by city or college", desc: "Browse verified hostels, PGs and shared rooms near your college or workplace." },
-  { step: "02", title: "Connect directly with owners", desc: "No brokers. Chat with verified owners, ask questions, and schedule visits." },
-  { step: "03", title: "Book and pay securely", desc: "Confirm your room and pay through our secure payment gateway." },
+  {
+    step: "01",
+    title: "Search by city or college",
+    desc: "Browse verified hostels, PGs and shared rooms near your college or workplace.",
+  },
+  {
+    step: "02",
+    title: "Connect directly with owners",
+    desc: "No brokers. Chat with verified owners, ask questions, and schedule visits.",
+  },
+  {
+    step: "03",
+    title: "Book and pay securely",
+    desc: "Confirm your room and pay through our secure payment gateway.",
+  },
 ];
 
 const REVIEWS = [
-  { name: "Priya Sharma", college: "IIT Bombay, Mumbai", rating: 5, avatar: "P", color: "bg-violet-500", text: "Found my PG within 2 days of joining. The owner was verified and the room was exactly as shown. No broker fees — saved ₹15,000!" },
-  { name: "Rahul Mehta", college: "Delhi University, Delhi", rating: 5, avatar: "R", color: "bg-blue-500", text: "NearStay made my hostel search so easy. The filters helped me find a boys-only hostel with food included near my college. Highly recommend!" },
-  { name: "Anjali Singh", college: "Christ University, Bangalore", rating: 5, avatar: "A", color: "bg-emerald-500", text: "As a girl coming from outside the city, safety was my top concern. All properties are verified and the owner was super helpful. Feels safe and homely." },
-  { name: "Karan Patel", college: "NMIMS, Mumbai", rating: 4, avatar: "K", color: "bg-amber-500", text: "Booked a shared room in 3 days. Payment was smooth, the security deposit process was transparent. Wish I had found this platform sooner." },
-  { name: "Sneha Reddy", college: "BITS Pilani, Hyderabad", rating: 5, avatar: "S", color: "bg-rose-500", text: "The chat feature let me talk directly with the owner before booking. No middlemen, no hidden costs. Got a great deal on a fully furnished room." },
-  { name: "Amit Joshi", college: "Symbiosis, Pune", rating: 5, avatar: "A", color: "bg-cyan-500", text: "The reviews from other students were super honest and helped me pick the right place. Move-in was smooth and the owner was exactly as described." },
+  {
+    name: "Priya Sharma",
+    college: "IIT Bombay, Mumbai",
+    rating: 5,
+    avatar: "P",
+    color: "bg-violet-500",
+    text: "Found my PG within 2 days of joining. The owner was verified and the room was exactly as shown. No broker fees — saved ₹15,000!",
+  },
+  {
+    name: "Rahul Mehta",
+    college: "Delhi University, Delhi",
+    rating: 5,
+    avatar: "R",
+    color: "bg-blue-500",
+    text: "NearStay made my hostel search so easy. The filters helped me find a boys-only hostel with food included near my college. Highly recommend!",
+  },
+  {
+    name: "Anjali Singh",
+    college: "Christ University, Bangalore",
+    rating: 5,
+    avatar: "A",
+    color: "bg-emerald-500",
+    text: "As a girl coming from outside the city, safety was my top concern. All properties are verified and the owner was super helpful. Feels safe and homely.",
+  },
+  {
+    name: "Karan Patel",
+    college: "NMIMS, Mumbai",
+    rating: 4,
+    avatar: "K",
+    color: "bg-amber-500",
+    text: "Booked a shared room in 3 days. Payment was smooth, the security deposit process was transparent. Wish I had found this platform sooner.",
+  },
+  {
+    name: "Sneha Reddy",
+    college: "BITS Pilani, Hyderabad",
+    rating: 5,
+    avatar: "S",
+    color: "bg-rose-500",
+    text: "The chat feature let me talk directly with the owner before booking. No middlemen, no hidden costs. Got a great deal on a fully furnished room.",
+  },
+  {
+    name: "Amit Joshi",
+    college: "Symbiosis, Pune",
+    rating: 5,
+    avatar: "A",
+    color: "bg-cyan-500",
+    text: "The reviews from other students were super honest and helped me pick the right place. Move-in was smooth and the owner was exactly as described.",
+  },
 ];
 
 function ReviewCarousel() {
@@ -37,14 +122,17 @@ function ReviewCarousel() {
   const [transitioning, setTransitioning] = useState(false);
   const total = REVIEWS.length;
 
-  const goTo = useCallback((idx) => {
-    if (transitioning) return;
-    setTransitioning(true);
-    setTimeout(() => {
-      setCurrent((idx + total) % total);
-      setTransitioning(false);
-    }, 250);
-  }, [transitioning, total]);
+  const goTo = useCallback(
+    (idx) => {
+      if (transitioning) return;
+      setTransitioning(true);
+      setTimeout(() => {
+        setCurrent((idx + total) % total);
+        setTransitioning(false);
+      }, 250);
+    },
+    [transitioning, total],
+  );
 
   const next = useCallback(() => goTo(current + 1), [current, goTo]);
   const prev = useCallback(() => goTo(current - 1), [current, goTo]);
@@ -64,18 +152,25 @@ function ReviewCarousel() {
           background: "rgba(255,255,255,0.10)",
           opacity: transitioning ? 0 : 1,
           transform: transitioning ? "translateY(8px)" : "translateY(0)",
-          transition: "opacity 0.25s ease, transform 0.25s ease"
+          transition: "opacity 0.25s ease, transform 0.25s ease",
         }}
       >
         <Quote className="h-8 w-8 text-white/30 mb-3 shrink-0" />
         <div className="flex gap-1 mb-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className={`h-4 w-4 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-white/20"}`} />
+            <Star
+              key={i}
+              className={`h-4 w-4 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-white/20"}`}
+            />
           ))}
         </div>
-        <p className="text-white/90 text-sm leading-relaxed flex-1 mb-5">"{r.text}"</p>
+        <p className="text-white/90 text-sm leading-relaxed flex-1 mb-5">
+          "{r.text}"
+        </p>
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full ${r.color} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+          <div
+            className={`w-10 h-10 rounded-full ${r.color} flex items-center justify-center text-white font-bold text-sm shrink-0`}
+          >
             {r.avatar}
           </div>
           <div>
@@ -92,15 +187,26 @@ function ReviewCarousel() {
               key={i}
               onClick={() => goTo(i)}
               className="h-1.5 rounded-full transition-all duration-300"
-              style={{ width: i === current ? "24px" : "6px", background: i === current ? "white" : "rgba(255,255,255,0.3)" }}
+              style={{
+                width: i === current ? "24px" : "6px",
+                background: i === current ? "white" : "rgba(255,255,255,0.3)",
+              }}
             />
           ))}
         </div>
         <div className="flex gap-2">
-          <button onClick={prev} className="w-8 h-8 rounded-full flex items-center justify-center transition-all" style={{ background: "rgba(255,255,255,0.10)" }}>
+          <button
+            onClick={prev}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+            style={{ background: "rgba(255,255,255,0.10)" }}
+          >
             <ChevronLeft className="h-4 w-4 text-white" />
           </button>
-          <button onClick={next} className="w-8 h-8 rounded-full flex items-center justify-center transition-all" style={{ background: "rgba(255,255,255,0.10)" }}>
+          <button
+            onClick={next}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+            style={{ background: "rgba(255,255,255,0.10)" }}
+          >
             <ChevronRight className="h-4 w-4 text-white" />
           </button>
         </div>
@@ -124,7 +230,8 @@ function PropertyCardSkeleton() {
 
 function PropertyCard({ property }) {
   const navigate = useNavigate();
-  const fallbackImg = "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop";
+  const fallbackImg =
+    "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=900&h=600&fit=crop";
 
   return (
     <div
@@ -136,7 +243,9 @@ function PropertyCard({ property }) {
           src={property.images?.[0] || fallbackImg}
           alt={property.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => { e.target.src = fallbackImg; }}
+          onError={(e) => {
+            e.target.src = fallbackImg;
+          }}
         />
         <div className="absolute top-3 left-3">
           <span className="text-xs px-2 py-1 rounded-full bg-white/90 text-foreground font-medium capitalize shadow-sm">
@@ -145,36 +254,60 @@ function PropertyCard({ property }) {
         </div>
         <div className="absolute top-3 right-3">
           {property.genderPreference === "male" ? (
-            <span className="text-xs px-2 py-1 rounded-full bg-blue-500/90 text-white font-medium">Boys</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-blue-500/90 text-white font-medium">
+              Boys
+            </span>
           ) : property.genderPreference === "female" ? (
-            <span className="text-xs px-2 py-1 rounded-full bg-pink-500/90 text-white font-medium">Girls</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-pink-500/90 text-white font-medium">
+              Girls
+            </span>
           ) : (
-            <span className="text-xs px-2 py-1 rounded-full bg-green-500/90 text-white font-medium">Co-ed</span>
+            <span className="text-xs px-2 py-1 rounded-full bg-green-500/90 text-white font-medium">
+              Co-ed
+            </span>
           )}
         </div>
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-sm line-clamp-1 mb-1">{property.title}</h3>
+        <h3 className="font-semibold text-sm line-clamp-1 mb-1">
+          {property.title}
+        </h3>
         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
           <MapPin className="h-3 w-3 shrink-0" />
-          <span className="truncate">{property.city}, {property.state}</span>
+          <span className="truncate">
+            {property.city}, {property.state}
+          </span>
         </div>
         {property.reviewRating > 0 && (
           <div className="flex items-center gap-1 mb-2">
             <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-medium">{property.reviewRating.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground">({property.reviewCount})</span>
+            <span className="text-xs font-medium">
+              {property.reviewRating.toFixed(1)}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              ({property.reviewCount})
+            </span>
           </div>
         )}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
           <div>
-            <span className="text-base font-bold text-primary">₹{property.rent?.toLocaleString("en-IN")}</span>
+            <span className="text-base font-bold text-primary">
+              ₹{property.rent?.toLocaleString("en-IN")}
+            </span>
             <span className="text-xs text-muted-foreground">/month</span>
           </div>
           {property.isApproved && (
-            <ShieldCheck className="h-4 w-4 text-emerald-500" title="Verified" />
+            <ShieldCheck
+              className="h-4 w-4 text-emerald-500"
+              title="Verified"
+            />
           )}
         </div>
+        {property.maxPeople > 0 && (
+          <div className="text-xs text-muted-foreground mt-1">
+            Up to {property.maxPeople} people
+          </div>
+        )}
       </div>
     </div>
   );
@@ -213,7 +346,9 @@ function NavUserMenu() {
       <div className="profile-avatar w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shadow-sm">
         {user.fullName?.charAt(0) || "U"}
       </div>
-      <span className="text-sm font-medium hidden sm:inline">{user.fullName?.split(" ")[0] || "User"}</span>
+      <span className="text-sm font-medium hidden sm:inline">
+        {user.fullName?.split(" ")[0] || "User"}
+      </span>
     </button>
   );
 }
@@ -248,7 +383,9 @@ function CtaSection() {
           bookings within days.
         </p>
         <button
-          onClick={() => navigate(user ? "/dashboard/owner/properties" : "/register")}
+          onClick={() =>
+            navigate(user ? "/dashboard/owner/properties" : "/register")
+          }
           className="bg-white text-indigo-700 hover:bg-white/90 active:scale-95 transition-all font-semibold px-6 py-3 rounded-lg text-sm shadow-lg hover:shadow-xl hover:scale-105"
         >
           {user ? "List your property" : "List your property for free"}
@@ -326,12 +463,24 @@ export default function HomePage() {
       {/* ── NAVBAR ── */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl animate-slide-down">
         <div className="max-w-7xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-4">
-          <a href="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center transition-transform group-hover:scale-110">
-              <span className="font-bold text-sm text-white">N</span>
-            </div>
-            <span className="font-bold text-lg tracking-tight">NearStay</span>
-          </a>
+     <a href="/" className="flex items-center gap-2.5 shrink-0 group">
+  <img
+    src={logo}
+    alt="NearStay Logo"
+    className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+  />
+
+  <h1 className="flex items-center select-none">
+    <span className="font-poppins text-2xl font-extrabold tracking-tight text-slate-900">
+      Near
+    </span>
+
+    <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+  <span className="text-[2rem]">S</span>
+  <span className="text-2xl">tay</span>
+</span>
+  </h1>
+</a>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate("/search")}
@@ -393,7 +542,7 @@ export default function HomePage() {
               Browse thousands of PGs, hostels, and shared rooms across India.
             </p>
 
-            <div className="flex gap-2 bg-white/10 backdrop-blur-lg ring-1 ring-white/15 rounded-3xl p-1.5 max-w-lg animate-fade-in-up delay-700 shadow-soft">
+            <div className="flex gap-2 bg-white/10 backdrop-blur-lg rounded-3xl p-1.5 max-w-lg animate-fade-in-up delay-700 shadow-soft">
               <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-3xl bg-white/10">
                 <MapPin className="h-4 w-4 text-white/60 shrink-0" />
                 <input
@@ -407,7 +556,7 @@ export default function HomePage() {
               </div>
               <button
                 onClick={handleSearch}
-                className="flex items-center gap-2 bg-linear-to-r from-primary to-indigo-500 hover:from-indigo-500 hover:to-primary text-white text-sm font-semibold px-4 py-2.5 rounded-3xl transition-all hover:scale-105 active:scale-95 shrink-0 shadow-lg"
+                className="flex items-center gap-2 bg-[#5548e3] hover:bg-[#4a3fd4] text-white text-sm font-semibold px-4 py-2.5 rounded-3xl transition-all hover:scale-105 active:scale-95 shrink-0 shadow-lg"
               >
                 <Search className="h-4 w-4" />
                 <span className="hidden sm:inline">Search</span>
@@ -512,20 +661,20 @@ export default function HomePage() {
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {isFeaturedLoading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <PropertyCardSkeleton key={i} />
-              ))
-            : featuredProperties.length > 0
-              ? featuredProperties.map((property) => (
-                  <PropertyCard key={property._id} property={property} />
-                ))
-              : (
-                <div className="col-span-full text-center py-10 text-muted-foreground">
-                  <Building2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                  <p>No properties listed yet. Check back soon!</p>
-                </div>
-              )}
+          {isFeaturedLoading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <PropertyCardSkeleton key={i} />
+            ))
+          ) : featuredProperties.length > 0 ? (
+            featuredProperties.map((property) => (
+              <PropertyCard key={property._id} property={property} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-10 text-muted-foreground">
+              <Building2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
+              <p>No properties listed yet. Check back soon!</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -601,11 +750,21 @@ export default function HomePage() {
       {/* ── Footer ── */}
       <footer className="border-t border-border bg-card text-muted-foreground animate-fade-in">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <div className="flex items-center gap-2 hover:scale-105 transition-transform cursor-default">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-xs">N</span>
-            </div>
-            <span className="font-semibold text-foreground">NearStay</span>
+          <div className="flex items-center gap-2.5 hover:scale-105 transition-transform cursor-default group">
+            <img
+              src={logo}
+              alt="NearStay Logo"
+              className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110"
+            />
+            <h1 className="flex items-center select-none">
+              <span className="font-poppins text-lg font-extrabold tracking-tight text-slate-900">
+                Near
+              </span>
+              <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+                <span className="text-[1.4rem]">S</span>
+                <span className="text-lg">tay</span>
+              </span>
+            </h1>
           </div>
           <p className="text-xs">
             Direct student housing. No brokers. No hidden charges.

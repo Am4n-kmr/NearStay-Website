@@ -13,6 +13,7 @@ import { openRazorpayCheckout } from "../lib/razorpay";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/use-auth";
 import { getDashboardBasePath } from "../lib/dashboard";
+import logo from "../assets/logo.png";
 
 const genderLabels = { male: "Boys", female: "Girls", any: "Co-ed" };
 
@@ -62,13 +63,23 @@ function NavUserMenu() {
 function Navbar() {
   const navigate = useNavigate();
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-4">
-        <a href="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="font-bold text-sm text-white">N</span>
-          </div>
-          <span className="font-bold text-lg tracking-tight">NearStay</span>
+        <a href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <img
+            src={logo}
+            alt="NearStay Logo"
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+          <h1 className="flex items-center select-none">
+            <span className="font-poppins text-2xl font-extrabold tracking-tight text-slate-900">
+              Near
+            </span>
+            <span className="-ml-0.5 font-kaushan leading-none text-[#4338CA]">
+              <span className="text-[2rem]">S</span>
+              <span className="text-2xl">tay</span>
+            </span>
+          </h1>
         </a>
         <div className="flex items-center gap-2">
           <NavUserMenu />
@@ -452,6 +463,11 @@ export default function PropertyDetailPage() {
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {property.availableRooms} room(s) available
                 </div>
+                {property.maxPeople > 0 && (
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Up to {property.maxPeople} people per room
+                  </div>
+                )}
               </div>
 
               <button
