@@ -109,6 +109,7 @@ export const reviewApi = {
 export const paymentApi = {
   createOrder: (data) => api.post("/payments/create-order", data).then((r) => r.data),
   verify: (data) => api.post("/payments/verify", data).then((r) => r.data),
+  reconcile: (bookingId) => api.post(`/payments/reconcile/${bookingId}`).then((r) => r.data),
   getBookingPayments: (bookingId) => api.get(`/payments/booking/${bookingId}`).then((r) => r.data),
   getMyPayments: (params) => api.get("/payments/my-payments", { params }).then((r) => r.data),
   processRefund: (paymentId, data) => api.patch(`/payments/${paymentId}/refund`, data).then((r) => r.data),

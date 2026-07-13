@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, CheckCircle2, Clock, XCircle, Search, Loader2 } from "lucide-react";
+import { Calendar, MapPin, CheckCircle2, Clock, XCircle, Search, Loader2, CreditCard } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { Skeleton } from "../../../components/ui/skeleton";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { bookingApi } from "../../../lib/api";
+import { bookingApi, paymentApi } from "../../../lib/api";
+import { openRazorpayCheckout } from "../../../lib/razorpay";
 import { useToast } from "../../../hooks/use-toast";
+import { useAuth } from "../../../hooks/use-auth";
 
 const STATUS_TABS = ["all", "pending", "accepted", "confirmed", "completed", "cancelled", "rejected"];
 
@@ -23,7 +25,9 @@ export default function StudentBookings() {
   const [status, setStatus] = useState("all");
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [payingBookingId, setPayingBookingId] = useState(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchBookings();
@@ -33,7 +37,25 @@ export default function StudentBookings() {
     setIsLoading(true);
     try {
       const params = status !== "all" ? { status } : {};
-      const data = await bookingApi.getMyBookings(params);
+      let data = await bookingApi.getMyBookings(params);
+
+      const unpaid = data.filter(
+        (b) => b.paymentStatus !== "paid" && !["cancelled", "rejected"].includes(b.status)
+      );
+
+      for (const booking of unpaid) {
+        try {
+          const result = await paymentApi.reconcile(booking._id);
+          if (result?.booking) {
+            data = data.map((b) =>
+              b._id === booking._id ? { ...b, ...result.booking } : b
+            );
+          }
+        } catch {
+          // No captured payment on Razorpay yet
+        }
+      }
+
       setBookings(data);
     } catch (error) {
       toast({
@@ -65,6 +87,69 @@ export default function StudentBookings() {
     }
   };
 
+  const handlePayNow = async (booking) => {
+    setPayingBookingId(booking._id);
+
+    try {
+      const orderResp = await paymentApi.createOrder({
+        bookingId: booking._id,
+        paymentMethod: "razorpay",
+        paymentType: "full",
+        amount: booking.totalAmount,
+      });
+
+      if (!orderResp?.order?.id) {
+        throw new Error("Failed to create payment order");
+      }
+
+      const razorpayKey = orderResp.key || import.meta.env.VITE_RAZORPAY_KEY;
+
+      if (!razorpayKey) {
+        toast({
+          title: "Payment unavailable",
+          description: "Razorpay is not configured. Please contact support.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await openRazorpayCheckout({
+        key: razorpayKey,
+        amount: orderResp.amount,
+        currency: orderResp.currency || "INR",
+        orderId: orderResp.order.id,
+        description: `Booking payment for ${booking.property?.title || "property"}`,
+        prefill: {
+          name: user?.fullName,
+          email: user?.email,
+        },
+        onSuccess: async (response) => {
+          await paymentApi.verify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+        },
+      });
+
+      toast({
+        title: "Payment successful",
+        description: "Your payment has been received.",
+      });
+      fetchBookings();
+    } catch (error) {
+      if (error.message !== "Payment cancelled") {
+        toast({
+          title: "Payment failed",
+          description: error.response?.data?.message || error.message || "Could not complete payment",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setPayingBookingId(null);
+    }
+  };
+
   return (
     <DashboardLayout title="My Bookings">
       <div className="space-y-5">
@@ -93,7 +178,7 @@ export default function StudentBookings() {
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div key={i} className="dashboard-card p-4 space-y-2">
                 <Skeleton className="h-5 w-1/2" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/3" />
@@ -106,7 +191,7 @@ export default function StudentBookings() {
               const sc = statusConfig[b.status] ?? { label: b.status, color: "bg-muted text-muted-foreground", icon: Clock };
               const StatusIcon = sc.icon;
               return (
-                <div key={b._id} className=" border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-colors">
+                <div key={b._id} className="dashboard-card dashboard-card-hover p-4">
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="min-w-0 flex-1">
@@ -146,16 +231,39 @@ export default function StudentBookings() {
                         {b.paymentStatus === "paid" ? "Paid" : b.paymentStatus === "partial" ? "Partially Paid" : "Payment Pending"}
                       </Badge>
                       
-                      {(b.status === "pending" || b.status === "accepted") && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleCancelBooking(b._id)}
-                          className="text-xs"
-                        >
-                          Cancel Booking
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {b.paymentStatus !== "paid" && b.status !== "cancelled" && b.status !== "rejected" && (
+                          <Button
+                            size="sm"
+                            onClick={() => handlePayNow(b)}
+                            disabled={payingBookingId === b._id}
+                            className="text-xs"
+                          >
+                            {payingBookingId === b._id ? (
+                              <>
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                Pay Now
+                              </>
+                            )}
+                          </Button>
+                        )}
+
+                        {(b.status === "pending" || b.status === "accepted") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCancelBooking(b._id)}
+                            className="text-xs"
+                          >
+                            Cancel Booking
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

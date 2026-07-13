@@ -2,6 +2,57 @@ import Payment from "../models/paymentModel.js";
 import Booking from "../models/bookingModel.js";
 import Property from "../models/propertyModel.js";
 import Notification from "../models/notificationModel.js";
+import crypto from "crypto";
+import getRazorpay from "../lib/razorpayClient.js";
+
+async function findPaymentByRazorpayOrder(razorpay_order_id) {
+  let payment = await Payment.findOne({ gatewayOrderId: razorpay_order_id });
+  if (payment) return payment;
+
+  payment = await Payment.findOne({ "metadata.gatewayOrderId": razorpay_order_id });
+  if (payment) return payment;
+
+  const razorpay = getRazorpay();
+  if (!razorpay) return null;
+
+  try {
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const bookingId = order?.notes?.bookingId;
+    if (!bookingId) return null;
+
+    return Payment.findOne({ booking: bookingId, status: "pending" }).sort({ createdAt: -1 });
+  } catch {
+    return null;
+  }
+}
+
+async function markPaymentCompleted(payment, razorpay_payment_id) {
+  payment.status = "completed";
+  payment.transactionId = razorpay_payment_id;
+  payment.paidAt = new Date();
+
+  const booking = await Booking.findById(payment.booking);
+  if (booking) {
+    if (payment.paymentType === "full") {
+      booking.paymentStatus = "paid";
+    } else if (payment.paymentType === "advance" || payment.paymentType === "security_deposit") {
+      booking.paymentStatus = "partial";
+    }
+    await booking.save();
+
+    const notification = new Notification({
+      user: booking.owner,
+      title: "Payment Received",
+      message: `Payment of ₹${payment.amount} received for booking.`,
+      type: "payment",
+      link: `/dashboard/owner/bookings/${booking._id}`,
+    });
+    await notification.save();
+  }
+
+  await payment.save();
+  return payment;
+}
 
 // Create payment order
 export const createPaymentOrder = async (req, res) => {
@@ -14,6 +65,15 @@ export const createPaymentOrder = async (req, res) => {
     // Verify user is authorized
     if (booking.tenant.toString() !== req.user.userId && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (booking.paymentStatus === "paid") {
+      return res.status(400).json({ message: "Booking is already paid" });
+    }
+
+    const expectedAmount = booking.totalAmount;
+    if (Math.round(amount) !== Math.round(expectedAmount)) {
+      return res.status(400).json({ message: "Payment amount does not match booking total" });
     }
 
     // Generate unique payment ID
@@ -33,15 +93,40 @@ export const createPaymentOrder = async (req, res) => {
 
     const saved = await payment.save();
 
-    // In production, here you would:
-    // - Call Razorpay/Stripe/PayPal API to create order
-    // - Return order details with gateway-specific data
-    // For now, return mock order data
+    // Create Razorpay order
+    const razorpay = getRazorpay();
+
+    if (!razorpay) {
+      // If keys not provided, return mock response to avoid crashing in dev
+      return res.status(201).json({
+        payment: saved,
+        order: { id: paymentId },
+        amount: amount * 100,
+        currency: "INR",
+        key: null,
+      });
+    }
+
+    const options = {
+      amount: Math.round(amount * 100), // paise
+      currency: "INR",
+      receipt: paymentId,
+      notes: { bookingId: bookingId.toString() },
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    saved.gatewayOrderId = order.id;
+    saved.metadata.set("gatewayOrderId", order.id);
+    saved.markModified("metadata");
+    await saved.save();
+
     res.status(201).json({
       payment: saved,
-      orderId: paymentId,
-      amount: amount * 100, // Convert to paise for Razorpay
-      currency: "INR",
+      order,
+      amount: order.amount,
+      currency: order.currency,
+      key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error("createPaymentOrder error:", error);
@@ -52,8 +137,33 @@ export const createPaymentOrder = async (req, res) => {
 // Verify payment (webhook/callback)
 export const verifyPayment = async (req, res) => {
   try {
-    const { paymentId, transactionId, status } = req.body;
+    // Expecting Razorpay callback payload: razorpay_payment_id, razorpay_order_id, razorpay_signature
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
 
+    if (razorpay_payment_id && razorpay_order_id && razorpay_signature) {
+      // verify signature
+      const generated_signature = crypto
+        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
+        .update(razorpay_order_id + "|" + razorpay_payment_id)
+        .digest("hex");
+
+      if (generated_signature !== razorpay_signature) {
+        return res.status(400).json({ message: "Invalid signature" });
+      }
+
+      const payment = await findPaymentByRazorpayOrder(razorpay_order_id);
+      if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+      if (payment.status === "completed") {
+        return res.json(payment);
+      }
+
+      const updated = await markPaymentCompleted(payment, razorpay_payment_id);
+      return res.json(updated);
+    }
+
+    // Fallback to legacy verify payload
+    const { paymentId, transactionId, status } = req.body;
     const payment = await Payment.findOne({ paymentId });
     if (!payment) return res.status(404).json({ message: "Payment not found" });
 
@@ -62,7 +172,6 @@ export const verifyPayment = async (req, res) => {
     payment.paidAt = new Date();
 
     if (status === "success") {
-      // Update booking payment status
       const booking = await Booking.findById(payment.booking);
       if (booking) {
         if (payment.paymentType === "full") {
@@ -73,13 +182,12 @@ export const verifyPayment = async (req, res) => {
         await booking.save();
       }
 
-      // Notify owner
       const notification = new Notification({
-        user: booking.owner,
+        user: booking?.owner,
         title: "Payment Received",
         message: `Payment of ₹${payment.amount} received for booking.`,
         type: "payment",
-        link: `/dashboard/owner/bookings/${booking._id}`,
+        link: `/dashboard/owner/bookings/${booking?._id}`,
       });
       await notification.save();
     }
@@ -89,6 +197,63 @@ export const verifyPayment = async (req, res) => {
   } catch (error) {
     console.error("verifyPayment error:", error);
     res.status(500).json({ message: "Server error verifying payment" });
+  }
+};
+
+// Reconcile a booking payment with Razorpay (for payments that succeeded but weren't verified)
+export const reconcileBookingPayment = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (
+      booking.tenant.toString() !== req.user.userId &&
+      booking.owner.toString() !== req.user.userId &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (booking.paymentStatus === "paid") {
+      return res.json({ message: "Already paid", booking });
+    }
+
+    const payment = await Payment.findOne({ booking: bookingId, status: "pending" }).sort({ createdAt: -1 });
+    if (!payment) {
+      return res.status(404).json({ message: "No pending payment found for this booking" });
+    }
+
+    const orderId =
+      payment.gatewayOrderId ||
+      (typeof payment.metadata?.get === "function"
+        ? payment.metadata.get("gatewayOrderId")
+        : payment.metadata?.gatewayOrderId);
+    if (!orderId) {
+      return res.status(404).json({ message: "No Razorpay order linked to this payment" });
+    }
+
+    const razorpay = getRazorpay();
+    if (!razorpay) {
+      return res.status(503).json({ message: "Razorpay is not configured" });
+    }
+
+    const orderPayments = await razorpay.orders.fetchPayments(orderId);
+    const captured = orderPayments?.items?.find((p) => p.status === "captured");
+
+    if (!captured) {
+      return res.status(404).json({ message: "No completed Razorpay payment found for this order" });
+    }
+
+    payment.gatewayOrderId = orderId;
+    const updated = await markPaymentCompleted(payment, captured.id);
+    const refreshedBooking = await Booking.findById(bookingId);
+
+    res.json({ message: "Payment reconciled", payment: updated, booking: refreshedBooking });
+  } catch (error) {
+    console.error("reconcileBookingPayment error:", error);
+    res.status(500).json({ message: "Server error reconciling payment" });
   }
 };
 
@@ -204,5 +369,40 @@ export const getAllPayments = async (req, res) => {
   } catch (error) {
     console.error("getAllPayments error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Dev-only: create a Razorpay order without DB writes (for quick testing)
+export const createDevOrder = async (req, res) => {
+  try {
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({ message: "Not allowed in production" });
+    }
+
+    const { amount } = req.body;
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
+    }
+
+    const razorpay = getRazorpay();
+    if (!razorpay) {
+      return res.status(200).json({
+        order: { id: `DEV_${Date.now()}` },
+        amount: Math.round(amount * 100),
+        currency: "INR",
+        key: null,
+      });
+    }
+
+    const order = await razorpay.orders.create({
+      amount: Math.round(amount * 100),
+      currency: "INR",
+      receipt: `dev_receipt_${Date.now()}`,
+    });
+
+    res.json({ order, amount: order.amount, currency: order.currency, key: process.env.RAZORPAY_KEY_ID });
+  } catch (error) {
+    console.error("createDevOrder error:", error);
+    res.status(500).json({ message: "Server error creating dev order" });
   }
 };

@@ -38,6 +38,10 @@ export const sendTypingIndicator = (chatId, isTyping) => {
   socket.emit("typing", { chatId, isTyping });
 };
 
+export const sendMessageRead = (chatId) => {
+  socket.emit("message-read", { chatId });
+};
+
 // Listeners
 export const onNewMessage = (callback) => {
   socket.on("new-message", callback);
@@ -47,6 +51,10 @@ export const onUserTyping = (callback) => {
   socket.on("user-typing", callback);
 };
 
+export const onMessageRead = (callback) => {
+  socket.on("message-read", callback);
+};
+
 export const onNewNotification = (callback) => {
   socket.on("new-notification", callback);
 };
@@ -54,5 +62,6 @@ export const onNewNotification = (callback) => {
 export const removeListeners = () => {
   socket.off("new-message");
   socket.off("user-typing");
+  socket.off("message-read");
   socket.off("new-notification");
 };

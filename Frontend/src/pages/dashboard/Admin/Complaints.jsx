@@ -108,7 +108,7 @@ export default function AdminComplaints() {
               return (
                 <div
                   key={c._id}
-                  className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/30 transition-colors"
+                  className="dashboard-card dashboard-card-hover"
                 >
                   <div
                     onClick={() => setSelectedComplaint(isSelected ? null : c)}

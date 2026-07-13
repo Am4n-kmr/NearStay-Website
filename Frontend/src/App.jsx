@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "./hooks/use-auth";
+import { STUDENT_ROLES } from "./lib/dashboard";
 
 import HomePage from "./pages/Home";
 import LoginPage from "./pages/Login";
@@ -34,6 +35,12 @@ import AdminComplaints from "./pages/dashboard/Admin/Complaints";
 
 const queryClient = new QueryClient();
 
+function TenantRedirect() {
+  const location = useLocation();
+  const target = location.pathname.replace(/^\/dashboard\/tenant/, "/dashboard/student");
+  return <Navigate to={`${target}${location.search}`} replace />;
+}
+
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
   
@@ -57,13 +64,15 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/property/:id" element={<PropertyDetailPage />} />
 
+            <Route path="/dashboard/tenant/*" element={<TenantRedirect />} />
+
             {/* Student Dashboard */}
-            <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={["student"]}><StudentDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/student/bookings" element={<ProtectedRoute allowedRoles={["student"]}><StudentBookings /></ProtectedRoute>} />
-            <Route path="/dashboard/student/complaints" element={<ProtectedRoute allowedRoles={["student"]}><StudentComplaints /></ProtectedRoute>} />
-            <Route path="/dashboard/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><StudentMessages /></ProtectedRoute>} />
-            <Route path="/dashboard/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentProfile /></ProtectedRoute>} />
-            <Route path="/dashboard/student/wishlist" element={<ProtectedRoute allowedRoles={["student"]}><StudentWishlist /></ProtectedRoute>} />
+            <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={STUDENT_ROLES}><StudentDashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/student/bookings" element={<ProtectedRoute allowedRoles={STUDENT_ROLES}><StudentBookings /></ProtectedRoute>} />
+            <Route path="/dashboard/student/complaints" element={<ProtectedRoute allowedRoles={STUDENT_ROLES}><StudentComplaints /></ProtectedRoute>} />
+            <Route path="/dashboard/student/messages" element={<ProtectedRoute allowedRoles={STUDENT_ROLES}><StudentMessages /></ProtectedRoute>} />
+            <Route path="/dashboard/student/profile" element={<ProtectedRoute allowedRoles={STUDENT_ROLES}><StudentProfile /></ProtectedRoute>} />
+            <Route path="/dashboard/student/wishlist" element={<ProtectedRoute allowedRoles={STUDENT_ROLES}><StudentWishlist /></ProtectedRoute>} />
 
             {/* Owner Dashboard */}
             <Route path="/dashboard/owner" element={<ProtectedRoute allowedRoles={["owner"]}><OwnerDashboard /></ProtectedRoute>} />

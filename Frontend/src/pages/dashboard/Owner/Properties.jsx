@@ -71,7 +71,7 @@ export default function OwnerProperties() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.map((p) => (
-              <div key={p._id} className="bg-card border border-border rounded-xl overflow-hidden">
+              <div key={p._id} className="dashboard-card dashboard-card-hover overflow-hidden">
                 {p.images?.[0] && (
                   <img src={p.images[0]} alt={p.title} className="w-full h-40 object-cover" />
                 )}

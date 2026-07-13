@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  BookOpen, Heart, Bell, MessageSquare, Calendar, ArrowRight, Home
+  BookOpen, Heart, Bell, MessageSquare, Calendar, ArrowRight, Home, CreditCard
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { Skeleton } from "../../../components/ui/skeleton";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { dashboardApi, notificationApi } from "../../../lib/api";
+import { dashboardApi, notificationApi, paymentApi } from "../../../lib/api";
 import { useAuth } from "../../../hooks/use-auth";
 
 const statusColors = {
@@ -30,7 +30,24 @@ export default function StudentDashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await dashboardApi.student();
+      let res = await dashboardApi.student();
+
+      const unpaid = (res.recentBookings || []).filter(
+        (b) => b.paymentStatus !== "paid" && !["cancelled", "rejected"].includes(b.status)
+      );
+
+      for (const booking of unpaid) {
+        try {
+          await paymentApi.reconcile(booking._id);
+        } catch {
+          // No captured payment on Razorpay yet
+        }
+      }
+
+      if (unpaid.length > 0) {
+        res = await dashboardApi.student();
+      }
+
       setData(res);
     } catch (err) {
       console.error("Failed to load dashboard:", err);
@@ -41,7 +58,7 @@ export default function StudentDashboard() {
 
   const stats = [
     { label: "Active Bookings", value: data?.activeBookings ?? 0, icon: BookOpen, href: "/dashboard/student/bookings", color: "text-primary" },
-    { label: "Wishlist", value: data?.wishlistCount ?? 0, icon: Heart, href: "/dashboard/student/wishlist", color: "text-rose-500" },
+    { label: "Paid Bookings", value: data?.paidBookings ?? 0, icon: CreditCard, href: "/dashboard/student/bookings", color: "text-emerald-500" },
     { label: "Unread Messages", value: data?.unreadMessages ?? 0, icon: MessageSquare, href: "/dashboard/student/messages", color: "text-blue-500" },
     { label: "Notifications", value: data?.unreadNotifications ?? 0, icon: Bell, href: "/dashboard/student", color: "text-amber-500" },
   ];
@@ -57,7 +74,7 @@ export default function StudentDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map(({ label, value, icon: Icon, href, color }) => (
-            <button key={label} onClick={() => navigate(href)} className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors">
+            <button key={label} onClick={() => navigate(href)} className="dashboard-card dashboard-card-hover p-4 text-left">
               <div className="flex items-center justify-between mb-2">
                 <Icon className={`h-5 w-5 ${color}`} />
                 {isLoading ? <Skeleton className="h-6 w-8" /> : <span className="text-2xl font-bold">{value}</span>}
@@ -69,7 +86,7 @@ export default function StudentDashboard() {
 
         <div className="grid md:grid-cols-2 gap-5">
           {/* Recent Bookings */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h2 className="font-semibold text-sm">Recent Bookings</h2>
               <Link to="/dashboard/student/bookings">
@@ -93,6 +110,11 @@ export default function StudentDashboard() {
                         {booking.status}
                       </span>
                     </div>
+                    <p className="text-xs mt-1.5">
+                      <span className={booking.paymentStatus === "paid" ? "text-emerald-600 font-medium" : "text-amber-600"}>
+                        {booking.paymentStatus === "paid" ? "Paid" : booking.paymentStatus === "partial" ? "Partially paid" : "Payment pending"}
+                      </span>
+                    </p>
                   </div>
                 ))
               ) : (
@@ -106,7 +128,7 @@ export default function StudentDashboard() {
           </div>
 
           {/* Notifications */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h2 className="font-semibold text-sm">Notifications</h2>
               {data?.unreadNotifications > 0 && (

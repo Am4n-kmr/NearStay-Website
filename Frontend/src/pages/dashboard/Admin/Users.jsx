@@ -75,7 +75,7 @@ export default function AdminUsers() {
             <p className="text-sm">No users found</p>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card dashboard-card-hover overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">

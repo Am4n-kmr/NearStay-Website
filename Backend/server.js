@@ -90,12 +90,16 @@ io.on("connection", (socket) => {
 
       // Populate sender info
       const populated = await saved.populate("sender", "fullName profileImage");
-
-      // Emit to all OTHER users in the chat room (sender already has optimistic update)
-      socket.to(`chat:${chatId}`).emit("new-message", populated);
-
-      // Send notification to other participants
+ 
+      // Emit the new message to all connected participants through their user rooms
       const chat = await Chat.findById(chatId);
+      if (chat) {
+        for (const participantId of chat.participants) {
+          io.to(`user:${participantId}`).emit("new-message", populated);
+        }
+      }
+ 
+      // Send notification to other participants
       if (chat) {
         const otherParticipants = chat.participants.filter(
           (p) => p.toString() !== socket.user._id.toString()
@@ -118,6 +122,33 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Socket send-message error:", error);
       socket.emit("error", { message: "Failed to send message" });
+    }
+  });
+
+  // Mark messages as read and broadcast read receipts
+  socket.on("message-read", async (data) => {
+    try {
+      const { chatId } = data;
+      const { Chat, Message } = await import("./models/chatModel.js");
+      const chat = await Chat.findById(chatId);
+      if (!chat) return;
+      if (!chat.participants.some((p) => p.toString() === socket.user._id.toString())) {
+        return;
+      }
+
+      await Message.updateMany(
+        { chat: chatId, sender: { $ne: socket.user._id }, isRead: false },
+        { isRead: true }
+      );
+
+      for (const participantId of chat.participants) {
+        io.to(`user:${participantId}`).emit("message-read", {
+          chatId,
+          readerId: socket.user._id,
+        });
+      }
+    } catch (error) {
+      console.error("Socket message-read error:", error);
     }
   });
 

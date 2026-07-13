@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Building2, Calendar, MessageSquare, Bell, TrendingUp, Users, Plus, ArrowRight
+  Building2, Calendar, MessageSquare, Bell, TrendingUp, Users, Plus, ArrowRight, CreditCard
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Skeleton } from "../../../components/ui/skeleton";
 import DashboardLayout from "../../../components/DashboardLayout";
-import { dashboardApi, notificationApi } from "../../../lib/api";
+import { dashboardApi, notificationApi, paymentApi } from "../../../lib/api";
 import { useAuth } from "../../../hooks/use-auth";
 
 const statusColors = {
@@ -29,7 +29,24 @@ export default function OwnerDashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const res = await dashboardApi.owner();
+      let res = await dashboardApi.owner();
+
+      const unpaid = (res.recentBookings || []).filter(
+        (b) => b.paymentStatus !== "paid" && !["cancelled", "rejected"].includes(b.status)
+      );
+
+      for (const booking of unpaid) {
+        try {
+          await paymentApi.reconcile(booking._id);
+        } catch {
+          // No captured payment on Razorpay yet
+        }
+      }
+
+      if (unpaid.length > 0) {
+        res = await dashboardApi.owner();
+      }
+
       setData(res);
     } catch (err) {
       console.error("Failed to load dashboard:", err);
@@ -41,7 +58,7 @@ export default function OwnerDashboard() {
   const stats = [
     { label: "Total Properties", value: data?.totalProperties ?? 0, icon: Building2, href: "/dashboard/owner/properties", color: "text-primary" },
     { label: "Active Bookings", value: data?.confirmedBookings ?? 0, icon: Calendar, href: "/dashboard/owner/bookings", color: "text-emerald-500" },
-    { label: "Unread Messages", value: data?.unreadMessages ?? 0, icon: MessageSquare, href: "/dashboard/owner/messages", color: "text-blue-500" },
+    { label: "Total Revenue", value: `₹${(data?.totalRevenue ?? 0).toLocaleString("en-IN")}`, icon: CreditCard, href: "/dashboard/owner/bookings", color: "text-violet-500" },
     { label: "Notifications", value: data?.unreadNotifications ?? 0, icon: Bell, href: "/dashboard/owner", color: "text-amber-500" },
   ];
 
@@ -66,7 +83,7 @@ export default function OwnerDashboard() {
             <button
               key={label}
               onClick={() => navigate(href)}
-              className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-colors"
+              className="dashboard-card dashboard-card-hover p-4 text-left"
             >
               <div className="flex items-center justify-between mb-2">
                 <Icon className={`h-5 w-5 ${color}`} />
@@ -79,7 +96,7 @@ export default function OwnerDashboard() {
 
         {/* Recent activity */}
         <div className="grid md:grid-cols-2 gap-5">
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h2 className="font-semibold text-sm">Recent Bookings</h2>
               <Link to="/dashboard/owner/bookings">
@@ -103,6 +120,11 @@ export default function OwnerDashboard() {
                         {booking.status}
                       </span>
                     </div>
+                    <p className="text-xs mt-1.5">
+                      <span className={booking.paymentStatus === "paid" ? "text-emerald-600 font-medium" : "text-amber-600"}>
+                        {booking.paymentStatus === "paid" ? "Paid" : booking.paymentStatus === "partial" ? "Partially paid" : "Payment pending"}
+                      </span>
+                    </p>
                   </div>
                 ))
               ) : (
@@ -115,7 +137,7 @@ export default function OwnerDashboard() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="dashboard-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h2 className="font-semibold text-sm">Notifications</h2>
               {data?.unreadNotifications > 0 && (

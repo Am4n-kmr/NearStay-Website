@@ -4,6 +4,7 @@ import Complaint from "../models/complaintModel.js";
 import Notification from "../models/notificationModel.js";
 import { Chat, Message } from "../models/chatModel.js";
 import User from "../models/userModel.js";
+import mongoose from "mongoose";
 
 // ─── Student Dashboard Stats ───
 export const getStudentDashboard = async (req, res) => {
@@ -20,6 +21,7 @@ export const getStudentDashboard = async (req, res) => {
       pendingBookings,
       cancelledBookings,
       completedBookings,
+      paidBookings,
       unreadNotifications,
       pendingComplaints,
       unreadMessages,
@@ -29,6 +31,7 @@ export const getStudentDashboard = async (req, res) => {
       Booking.countDocuments({ tenant: userId, status: "pending" }),
       Booking.countDocuments({ tenant: userId, status: "cancelled" }),
       Booking.countDocuments({ tenant: userId, status: "completed" }),
+      Booking.countDocuments({ tenant: userId, paymentStatus: "paid" }),
       Notification.countDocuments({ user: userId, isRead: false }),
       Complaint.countDocuments({ user: userId, status: "open" }),
       Message.countDocuments({ chat: { $in: chatIds }, sender: { $ne: userId }, isRead: false }),
@@ -51,6 +54,7 @@ export const getStudentDashboard = async (req, res) => {
       pendingBookings,
       cancelledBookings,
       completedBookings,
+      paidBookings,
       unreadNotifications,
       pendingComplaints,
       unreadMessages,
@@ -92,9 +96,10 @@ export const getOwnerDashboard = async (req, res) => {
       Message.countDocuments({ chat: { $in: chatIds }, sender: { $ne: userId }, isRead: false }),
     ]);
 
-    // Total revenue from confirmed bookings
+    // Total revenue from paid bookings
+    const ownerObjectId = new mongoose.Types.ObjectId(userId);
     const revenueResult = await Booking.aggregate([
-      { $match: { owner: userId, paymentStatus: "paid" } },
+      { $match: { owner: ownerObjectId, paymentStatus: "paid" } },
       { $group: { _id: null, total: { $sum: "$totalAmount" } } },
     ]);
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
