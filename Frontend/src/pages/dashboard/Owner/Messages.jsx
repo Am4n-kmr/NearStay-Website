@@ -13,6 +13,8 @@ import {
   leaveChat,
   sendMessage,
   sendTypingIndicator,
+  sendMessageRead,
+  onMessageRead,
   removeListeners,
   socket,
 } from "../../../lib/socket";
@@ -33,58 +35,99 @@ export default function OwnerMessages() {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const token = localStorage.getItem("token");
+  const selectedChatRef = useRef(selectedChat);
 
-  // Fetch chats on mount
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+  // Fetch chats on mount and wire socket listeners
   useEffect(() => {
     if (token) {
       connectSocket(token);
     }
-    fetchChats();
 
-    return () => {
-      disconnectSocket();
-      removeListeners();
-    };
-  }, []);
+    const handleIncomingMessage = (message) => {
+      const chatId = message.chat?._id || message.chat;
+      const isCurrentUser = message.sender?._id === user._id;
+      const isActiveChat = selectedChatRef.current?._id === chatId;
 
-  // Handle selected chat changes - join room, fetch messages, set up listeners
-  useEffect(() => {
-    if (!selectedChat) return;
+      setChats((prev) =>
+        prev.map((chat) => {
+          if (chat._id !== chatId) return chat;
+          const unreadCount = isCurrentUser || isActiveChat ? 0 : (chat.unreadCount ?? 0) + 1;
+          return {
+            ...chat,
+            lastMessage: message.content,
+            lastMessageAt: message.createdAt,
+            unreadCount,
+          };
+        })
+      );
 
-    const chatId = selectedChat._id;
-
-    // Clean up old listeners first
-    removeListeners();
-
-    // Join the new chat room
-    joinChat(chatId);
-    fetchMessages(chatId);
-
-    // Set up new message listener
-    const messageHandler = (message) => {
-      if (message.chat === chatId || message.chat?._id === chatId) {
+      if (isActiveChat) {
         setMessages((prev) => {
-          // Prevent duplicates
           if (prev.some((m) => m._id === message._id)) return prev;
           return [...prev, message];
         });
       }
     };
 
-    // Set up typing listener
-    const typingHandler = (data) => {
-      if (data.userId !== user._id) {
+    const handleMessageRead = ({ chatId }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.sender?._id === user._id ? { ...msg, isRead: true } : msg
+        )
+      );
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat._id === chatId ? { ...chat, unreadCount: 0 } : chat
+        )
+      );
+    };
+
+    const handleTyping = (data) => {
+      if (data.chatId === selectedChatRef.current?._id && data.userId !== user._id) {
         setIsTyping(data.isTyping);
       }
     };
 
-    socket.on("new-message", messageHandler);
-    socket.on("user-typing", typingHandler);
+    socket.on("new-message", handleIncomingMessage);
+    socket.on("message-read", handleMessageRead);
+    socket.on("user-typing", handleTyping);
+
+    fetchChats();
+
+    return () => {
+      socket.off("new-message", handleIncomingMessage);
+      socket.off("message-read", handleMessageRead);
+      socket.off("user-typing", handleTyping);
+      disconnectSocket();
+      removeListeners();
+    };
+  }, [token, user._id]);
+
+  // Handle selected chat changes - join room, fetch messages, mark as read
+  useEffect(() => {
+    if (!selectedChat) return;
+
+    const chatId = selectedChat._id;
+    joinChat(chatId);
+
+    const loadMessages = async () => {
+      await fetchMessages(chatId);
+      sendMessageRead(chatId);
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat._id === chatId ? { ...chat, unreadCount: 0 } : chat
+        )
+      );
+    };
+
+    loadMessages();
 
     return () => {
       leaveChat(chatId);
-      socket.off("new-message", messageHandler);
-      socket.off("user-typing", typingHandler);
     };
   }, [selectedChat]);
 
@@ -132,6 +175,22 @@ export default function OwnerMessages() {
     if (!newMessage.trim() || !selectedChat) return;
 
     const content = newMessage.trim();
+    const now = new Date().toISOString();
+
+    // Optimistically update chat preview
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat._id === selectedChat._id
+          ? { ...chat, lastMessage: content, lastMessageAt: now }
+          : chat
+      )
+    );
+    setSelectedChat((prev) =>
+      prev && prev._id === selectedChat._id
+        ? { ...prev, lastMessage: content, lastMessageAt: now }
+        : prev
+    );
+
     sendMessage(selectedChat._id, content);
     setNewMessage("");
 
