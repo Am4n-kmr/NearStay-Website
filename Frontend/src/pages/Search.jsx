@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Search, SlidersHorizontal, X, MapPin, Star, ShieldCheck } from "lucide-react";
-import { propertyApi } from "../lib/api";
+import { Search, SlidersHorizontal, X, MapPin, Star, ShieldCheck, Heart } from "lucide-react";
+import { propertyApi, wishlistApi } from "../lib/api";
 import { useAuth } from "../hooks/use-auth";
 import { getDashboardBasePath } from "../lib/dashboard";
+import { useToast } from "../hooks/use-toast";
 import logo from "../assets/logo.png";
 
 function PropertyCardSkeleton() {
@@ -121,6 +122,8 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [wishlistSet, setWishlistSet] = useState(new Set());
+  const { toast } = useToast();
 
   // Fetch properties from API when filters change
   useEffect(() => {
@@ -153,6 +156,21 @@ export default function SearchPage() {
         setProperties(data.properties || []);
         setTotal(data.total || 0);
         setTotalPages(data.totalPages || 1);
+
+        // Check wishlist status for all properties
+        if (user) {
+          const wishlistPromises = (data.properties || []).map(p => 
+            wishlistApi.checkWishlist(p._id).catch(() => ({ isInWishlist: false }))
+          );
+          const wishlistResults = await Promise.all(wishlistPromises);
+          const wishlistIds = new Set(
+            wishlistResults
+              .filter(r => r.isInWishlist)
+              .map((r, idx) => (data.properties || [])[idx]?._id)
+              .filter(Boolean)
+          );
+          setWishlistSet(wishlistIds);
+        }
       } catch (err) {
         console.error("Search error:", err);
         setProperties([]);
@@ -163,7 +181,7 @@ export default function SearchPage() {
       }
     };
     fetchProperties();
-  }, [searchParams.toString()]);
+  }, [searchParams.toString(), user]);
 
   // Sync form state when URL changes
   useEffect(() => {
@@ -180,6 +198,44 @@ export default function SearchPage() {
       parseInt(f.maxRent || "25000", 10),
     ]);
   }, [searchParams.toString()]);
+
+  const toggleWishlist = async (e, propertyId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (wishlistSet.has(propertyId)) {
+        await wishlistApi.removeFromWishlist(propertyId);
+        setWishlistSet(prev => {
+          const next = new Set(prev);
+          next.delete(propertyId);
+          return next;
+        });
+        toast({
+          title: "Success",
+          description: "Removed from wishlist",
+        });
+      } else {
+        await wishlistApi.addToWishlist({ propertyId });
+        setWishlistSet(prev => new Set(prev).add(propertyId));
+        toast({
+          title: "Success",
+          description: "Added to wishlist",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist",
+        variant: "destructive",
+      });
+    }
+  };
 
   const applyFilters = (overrides = {}) => {
     const p = new URLSearchParams();
@@ -399,6 +455,16 @@ export default function SearchPage() {
                         <div className="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                           <ShieldCheck className="h-3 w-3" /> Verified
                         </div>
+                      )}
+                      {user && (
+                        <button
+                          onClick={(e) => toggleWishlist(e, p._id)}
+                          className="absolute top-2 left-2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-all hover:scale-110"
+                        >
+                          <Heart
+                            className={`h-4 w-4 ${wishlistSet.has(p._id) ? "fill-red-500 text-red-500" : "text-gray-600"}`}
+                          />
+                        </button>
                       )}
                     </div>
                     <div className="p-4 space-y-2">

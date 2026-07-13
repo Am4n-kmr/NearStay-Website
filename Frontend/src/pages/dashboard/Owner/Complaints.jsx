@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Search, Loader2, CheckCircle2, Clock, XCircle, MessageSquare } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
@@ -23,7 +24,7 @@ export default function OwnerComplaints() {
   const [complaints, setComplaints] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [replyText, setReplyText] = useState("");
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,42 +48,9 @@ export default function OwnerComplaints() {
     }
   };
 
-  const handleUpdateStatus = async (complaintId, newStatus) => {
-    try {
-      await complaintApi.updateStatus(complaintId, { status: newStatus });
-      toast({
-        title: "Success",
-        description: `Complaint marked as ${newStatus.replace("_", " ")}`,
-      });
-      fetchComplaints();
-      setSelectedComplaint(null);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update complaint",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleReply = async (complaintId) => {
-    if (!replyText.trim()) return;
-    
-    try {
-      await complaintApi.replyToComplaint(complaintId, { reply: replyText });
-      toast({
-        title: "Success",
-        description: "Reply sent successfully",
-      });
-      setReplyText("");
-      fetchComplaints();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to send reply",
-        variant: "destructive",
-      });
-    }
+  const handleMessage = (complaint) => {
+    // Navigate to messages page with complaint context
+    navigate(`/dashboard/owner/messages?complaintId=${complaint.complaintId}&studentId=${complaint.complainant?._id}`);
   };
 
   return (
@@ -133,6 +101,9 @@ export default function OwnerComplaints() {
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium font-mono">
+                            #{c.complaintId}
+                          </span>
                           <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium capitalize">
                             {c.category?.replace("_", " ") || "General"}
                           </span>
@@ -172,32 +143,15 @@ export default function OwnerComplaints() {
                         </div>
                       )}
 
-                      {/* Status update buttons */}
-                      <div className="flex gap-2 flex-wrap">
-                        {c.status === "open" && (
-                          <Button size="sm" onClick={() => handleUpdateStatus(c._id, "in_progress")} className="text-xs">
-                            Mark In Progress
-                          </Button>
-                        )}
-                        {(c.status === "open" || c.status === "in_progress") && (
-                          <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(c._id, "resolved")} className="text-xs">
-                            Mark Resolved
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Reply section */}
+                      {/* Message button */}
                       <div className="space-y-2">
-                        <Label htmlFor={`reply-${c._id}`}>Reply to Complaint</Label>
-                        <Textarea
-                          id={`reply-${c._id}`}
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder="Write your reply..."
-                          rows={3}
-                        />
-                        <Button size="sm" onClick={() => handleReply(c._id)} disabled={!replyText.trim()}>
-                          Send Reply
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleMessage(c)}
+                          className="w-full"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Message Student
                         </Button>
                       </div>
 

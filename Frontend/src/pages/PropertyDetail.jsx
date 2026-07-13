@@ -8,7 +8,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import { propertyApi, chatApi, bookingApi, paymentApi } from "../lib/api";
+import { propertyApi, chatApi, bookingApi, paymentApi, wishlistApi } from "../lib/api";
 import { openRazorpayCheckout } from "../lib/razorpay";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../hooks/use-auth";
@@ -96,6 +96,7 @@ export default function PropertyDetailPage() {
   const [wishlisted, setWishlisted] = useState(false);
   const [property, setProperty] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingWishlist, setIsCheckingWishlist] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState({
@@ -116,6 +117,19 @@ export default function PropertyDetailPage() {
     try {
       const data = await propertyApi.getById(id);
       setProperty(data);
+      
+      // Check if property is in wishlist
+      if (user._id) {
+        setIsCheckingWishlist(true);
+        try {
+          const wishlistStatus = await wishlistApi.checkWishlist(id);
+          setWishlisted(wishlistStatus.isInWishlist);
+        } catch (err) {
+          console.error("Failed to check wishlist status:", err);
+        } finally {
+          setIsCheckingWishlist(false);
+        }
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -124,6 +138,37 @@ export default function PropertyDetailPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const toggleWishlist = async () => {
+    if (!user._id) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      if (wishlisted) {
+        await wishlistApi.removeFromWishlist(id);
+        setWishlisted(false);
+        toast({
+          title: "Success",
+          description: "Removed from wishlist",
+        });
+      } else {
+        await wishlistApi.addToWishlist({ propertyId: id });
+        setWishlisted(true);
+        toast({
+          title: "Success",
+          description: "Added to wishlist",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist",
+        variant: "destructive",
+      });
     }
   };
 
@@ -330,14 +375,16 @@ export default function PropertyDetailPage() {
             </>
           )}
           {/* Wishlist button */}
-          <button
-            onClick={() => setWishlisted((w) => !w)}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
-          >
-            <Heart
-              className={`h-4 w-4 ${wishlisted ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`}
-            />
-          </button>
+          {!isCheckingWishlist && (
+            <button
+              onClick={toggleWishlist}
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/80 flex items-center justify-center hover:bg-background transition-colors"
+            >
+              <Heart
+                className={`h-4 w-4 ${wishlisted ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`}
+              />
+            </button>
+          )}
         </div>
 
         <div className="grid md:grid-cols-[1fr_280px] gap-6">

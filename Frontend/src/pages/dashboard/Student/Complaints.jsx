@@ -186,20 +186,23 @@ export default function StudentComplaints() {
                   onClick={() => setSelectedComplaint(selectedComplaint?._id === c._id ? null : c)}
                   className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors cursor-pointer"
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium capitalize">
-                          {c.category.replace("_", " ")}
-                        </span>
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 ${sc.color}`}>
-                          <StatusIcon className="h-3 w-3" /> {sc.label}
-                        </span>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium font-mono">
+                              #{c.complaintId}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium capitalize">
+                              {c.category.replace("_", " ")}
+                            </span>
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 ${sc.color}`}>
+                              <StatusIcon className="h-3 w-3" /> {sc.label}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-sm">{c.title}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
+                        </div>
                       </div>
-                      <h3 className="font-semibold text-sm">{c.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
-                    </div>
-                  </div>
 
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{new Date(c.createdAt).toLocaleDateString("en-IN")}</span>

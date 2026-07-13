@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search, Send, MessageCircle, ArrowLeft, Check, CheckCheck } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -31,6 +32,7 @@ export default function OwnerMessages() {
   const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -40,6 +42,17 @@ export default function OwnerMessages() {
   useEffect(() => {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
+
+  // Handle complaint context from URL params
+  useEffect(() => {
+    const complaintId = searchParams.get("complaintId");
+    const studentId = searchParams.get("studentId");
+
+    if (complaintId && studentId) {
+      // Find or create chat with this student
+      findOrCreateChatWithStudent(studentId);
+    }
+  }, [searchParams]);
 
   // Fetch chats on mount and wire socket listeners
   useEffect(() => {
@@ -140,6 +153,31 @@ export default function OwnerMessages() {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 50);
+  };
+
+  const findOrCreateChatWithStudent = async (studentId) => {
+    try {
+      // Try to find existing chat with this student
+      const existingChats = await chatApi.getMyChats();
+      const existingChat = existingChats.find(chat => 
+        chat.participants.some(p => p._id === studentId)
+      );
+
+      if (existingChat) {
+        setSelectedChat(existingChat);
+      } else {
+        // Create new chat with student
+        const newChat = await chatApi.getOrCreate({ participantId: studentId });
+        setSelectedChat(newChat);
+        setChats(prev => [newChat, ...prev]);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to open chat with student",
+        variant: "destructive",
+      });
+    }
   };
 
   const fetchChats = async () => {

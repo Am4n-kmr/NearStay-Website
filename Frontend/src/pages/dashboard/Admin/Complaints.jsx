@@ -117,6 +117,9 @@ export default function AdminComplaints() {
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium font-mono">
+                            #{c.complaintId}
+                          </span>
                           <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium capitalize">
                             {c.category?.replace("_", " ") || "General"}
                           </span>

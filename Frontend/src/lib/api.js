@@ -90,6 +90,14 @@ export const complaintApi = {
   replyToComplaint: (id, data) => api.patch(`/complaints/${id}/reply`, data).then((r) => r.data),
 };
 
+// ─── Wishlist ───
+export const wishlistApi = {
+  getWishlist: () => api.get("/wishlist").then((r) => r.data),
+  addToWishlist: (data) => api.post("/wishlist", data).then((r) => r.data),
+  removeFromWishlist: (propertyId) => api.delete(`/wishlist/${propertyId}`).then((r) => r.data),
+  checkWishlist: (propertyId) => api.get(`/wishlist/check/${propertyId}`).then((r) => r.data),
+};
+
 // ─── Notifications ───
 export const notificationApi = {
   getMyNotifications: () => api.get("/notifications").then((r) => r.data),

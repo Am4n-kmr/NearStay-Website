@@ -8,7 +8,19 @@ export const createComplaint = async (req, res) => {
   try {
     const { propertyId, category, title, description, images } = req.body;
 
+    // Generate unique 16-digit complaint ID
+    let complaintId;
+    let isUnique = false;
+    while (!isUnique) {
+      complaintId = Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
+      const existing = await Complaint.findOne({ complaintId });
+      if (!existing) {
+        isUnique = true;
+      }
+    }
+
     const complaint = new Complaint({
+      complaintId,
       complainant: req.user.userId,
       property: propertyId || null,
       category,
@@ -86,7 +98,7 @@ export const getAllComplaints = async (req, res) => {
   }
 };
 
-// Update complaint status (admin or owner)
+// Update complaint status (admin only)
 export const updateComplaintStatus = async (req, res) => {
   try {
     const { status, resolution } = req.body;
@@ -94,12 +106,9 @@ export const updateComplaintStatus = async (req, res) => {
     if (!complaint)
       return res.status(404).json({ message: "Complaint not found" });
 
-    // Check authorization - admin or property owner
+    // Check authorization - admin only
     if (req.user.role !== "admin") {
-      const property = await Property.findById(complaint.property);
-      if (!property || property.owner.toString() !== req.user.userId) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
+      return res.status(403).json({ message: "Only admins can update complaint status" });
     }
 
     complaint.status = status;
@@ -134,16 +143,21 @@ export const replyToComplaint = async (req, res) => {
     if (!complaint)
       return res.status(404).json({ message: "Complaint not found" });
 
-    // Check if user is property owner or admin
-    if (req.user.role !== "admin") {
-      const property = await Property.findById(complaint.property);
-      if (!property || property.owner.toString() !== req.user.userId) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
+    // Check if user is property owner (not admin - admins should use updateComplaintStatus)
+    if (req.user.role === "admin") {
+      return res.status(403).json({ message: "Admins should use updateComplaintStatus instead" });
+    }
+    
+    // Check if user is property owner
+    const property = await Property.findById(complaint.property);
+    if (!property || property.owner.toString() !== req.user.userId) {
+      return res.status(403).json({ message: "Only property owners can reply to complaints" });
     }
 
     complaint.ownerReply = reply;
     complaint.repliedAt = new Date();
+    // Update status to in_progress when owner replies
+    complaint.status = "in_progress";
     await complaint.save();
 
     // Notify complainant

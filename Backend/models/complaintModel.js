@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const complaintSchema = new mongoose.Schema(
   {
+    complaintId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     complainant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

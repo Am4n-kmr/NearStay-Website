@@ -195,7 +195,7 @@ export const getAdminDashboard = async (req, res) => {
 
     // Recent complaints
     const recentComplaints = await Complaint.find()
-      .populate("user", "fullName")
+      .populate("complainant", "fullName")
       .populate("property", "title")
       .sort({ createdAt: -1 })
       .limit(5);
