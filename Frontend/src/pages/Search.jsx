@@ -124,6 +124,7 @@ export default function SearchPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [wishlistSet, setWishlistSet] = useState(new Set());
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch properties from API when filters change
   useEffect(() => {
