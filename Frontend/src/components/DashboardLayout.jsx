@@ -128,7 +128,7 @@ export default function DashboardLayout({ children, title }) {
         </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted hover:shadow-sm transition-colors duration-200"
+          className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-white hover:bg-red-600 hover:shadow-sm transition-colors duration-200"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span>Sign out</span>

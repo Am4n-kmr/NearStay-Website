@@ -283,9 +283,9 @@ export default function LoginPage() {
           {/* Demo credentials */}
           <div className="mt-8 p-4 bg-muted rounded-xl border border-border text-xs text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground mb-2">Demo accounts</p>
-            <p>Student: student@demo.com / demo123</p>
-            <p>Owner: owner@demo.com / demo123</p>
-            <p>Admin: admin@demo.com / demo123</p>
+            <p>Student: student@demo.com / demo1234</p>
+            <p>Owner: owner@demo.com / demo1234</p>
+            <p>Admin: admin@demo.com / demo1234</p>
           </div>
         </div>
       </div>

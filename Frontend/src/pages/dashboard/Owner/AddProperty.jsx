@@ -49,7 +49,7 @@ export default function AddProperty() {
 
   const update = (key) => (e) => {
     const value = e.target.type === "number" ? e.target.valueAsNumber : e.target.value;
-    setForm((f) => ({ ...f, [key]: isNaN(value) ? "" : value }));
+    setForm((f) => ({ ...f, [key]: value }));
   };
 
   return (
