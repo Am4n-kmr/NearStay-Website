@@ -2,15 +2,11 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
 import app from "./app.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5001;
-
-// Connect to database
-connectDB();
 
 // Create HTTP server
 const server = createServer(app);
