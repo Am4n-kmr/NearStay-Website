@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import DashboardLayout from "../../../components/DashboardLayout";
 import { propertyApi } from "../../../lib/api";
@@ -131,10 +131,90 @@ export default function AddProperty() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Image URLs (one per line)</label>
-            <textarea className="w-full min-h-[60px] px-3 py-2 text-sm border rounded-lg" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-              value={form.images.join("\n")} onChange={(e) => setForm((f) => ({ ...f, images: e.target.value.split("\n").filter(Boolean) }))} />
+          {/* Images */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Images</label>
+
+            {/* Upload from device */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-dashed border-border bg-background hover:border-primary/50 cursor-pointer transition-colors">
+                <Upload className="h-4 w-4" />
+                Upload from device
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    files.forEach((file) => {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        setForm((f) => ({ ...f, images: [...f.images, ev.target.result] }));
+                      };
+                      reader.readAsDataURL(file);
+                    });
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <span className="text-xs text-muted-foreground">or paste URLs below</span>
+            </div>
+
+            {/* Paste image URLs */}
+            <textarea
+              className="w-full min-h-[56px] px-3 py-2 text-sm border rounded-lg"
+              placeholder="https://example.com/image1.jpg"
+              onChange={(e) => {
+                const url = e.target.value.trim();
+                if (url && e.target.value.endsWith("\n")) {
+                  setForm((f) => ({ ...f, images: [...f.images, url] }));
+                  e.target.value = "";
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const val = e.target.value.trim();
+                  if (val) {
+                    setForm((f) => ({ ...f, images: [...f.images, val] }));
+                    e.target.value = "";
+                  }
+                }
+              }}
+            />
+
+            {/* Image previews */}
+            {form.images.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {form.images.map((img, i) => (
+                  <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                    {img.startsWith("data:") ? (
+                      <img src={img} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <img
+                          src={img}
+                          alt={`Image ${i + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.target.style.display = "none"; e.target.nextElementSibling.style.display = "flex"; }}
+                        />
+                        <div className="hidden w-full h-full items-center justify-center text-xs text-muted-foreground bg-muted">
+                          <ImageIcon className="h-5 w-5 mr-1" /> Invalid URL
+                        </div>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, images: f.images.filter((_, j) => j !== i) }))}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
