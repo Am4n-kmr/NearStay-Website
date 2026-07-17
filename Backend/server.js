@@ -18,7 +18,11 @@ const server = createServer(app);
 // Initialize Socket.IO
 export const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://nearstay-website.vercel.app", "https://nearstay-website.onrender.com"],
+    origin: [
+      "http://localhost:5173",
+      "https://nearstay-website.vercel.app",
+      "https://nearstay-website.onrender.com",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -36,11 +40,11 @@ io.use(async (socket, next) => {
     const User = (await import("./models/userModel.js")).default;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select("-password");
-    
+
     if (!user) {
       return next(new Error("User not found"));
     }
-    
+
     socket.user = user;
     next();
   } catch (error) {
@@ -72,7 +76,7 @@ io.on("connection", (socket) => {
     try {
       const { chatId, content } = data;
       const Message = (await import("./models/chatModel.js")).Message;
-      
+
       const message = new Message({
         chat: chatId,
         sender: socket.user._id,
@@ -80,7 +84,7 @@ io.on("connection", (socket) => {
       });
 
       const saved = await message.save();
-      
+
       // Update chat's last message
       const Chat = (await import("./models/chatModel.js")).Chat;
       await Chat.findByIdAndUpdate(chatId, {
@@ -90,7 +94,7 @@ io.on("connection", (socket) => {
 
       // Populate sender info
       const populated = await saved.populate("sender", "fullName profileImage");
- 
+
       // Emit the new message to all connected participants through their user rooms
       const chat = await Chat.findById(chatId);
       if (chat) {
@@ -98,15 +102,17 @@ io.on("connection", (socket) => {
           io.to(`user:${participantId}`).emit("new-message", populated);
         }
       }
- 
+
       // Send notification to other participants
       if (chat) {
         const otherParticipants = chat.participants.filter(
-          (p) => p.toString() !== socket.user._id.toString()
+          (p) => p.toString() !== socket.user._id.toString(),
         );
 
         for (const participantId of otherParticipants) {
-          const notification = new (await import("./models/notificationModel.js")).default({
+          const notification = new (
+            await import("./models/notificationModel.js")
+          ).default({
             user: participantId,
             title: "New Message",
             message: `${socket.user.fullName} sent you a message`,
@@ -132,13 +138,17 @@ io.on("connection", (socket) => {
       const { Chat, Message } = await import("./models/chatModel.js");
       const chat = await Chat.findById(chatId);
       if (!chat) return;
-      if (!chat.participants.some((p) => p.toString() === socket.user._id.toString())) {
+      if (
+        !chat.participants.some(
+          (p) => p.toString() === socket.user._id.toString(),
+        )
+      ) {
         return;
       }
 
       await Message.updateMany(
         { chat: chatId, sender: { $ne: socket.user._id }, isRead: false },
-        { isRead: true }
+        { isRead: true },
       );
 
       for (const participantId of chat.participants) {
