@@ -544,8 +544,8 @@ export default function HomePage() {
               Browse thousands of PGs, hostels, and shared rooms across India.
             </p>
 
-            <div className="flex gap-2 bg-white/10 backdrop-blur-lg rounded-3xl p-1.5 max-w-lg animate-fade-in-up delay-700 shadow-soft">
-              <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-3xl bg-white/10">
+            <div className="flex gap-2 bg-white/10 backdrop-blur-lg rounded-3xl p-1.5 max-w-lg animate-fade-in-up delay-700 shadow-soft focus-within:ring-2 focus-within:ring-indigo-400/50 focus-within:ring-offset-2 focus-within:ring-offset-transparent transition-all duration-300">
+              <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-3xl">
                 <MapPin className="h-4 w-4 text-white/60 shrink-0" />
                 <input
                   type="text"
@@ -553,7 +553,7 @@ export default function HomePage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="flex-1 bg-transparent text-white placeholder-white/50 text-sm outline-none min-w-0"
+                  className="flex-1 bg-transparent text-white placeholder-white/50 text-sm border-none outline-none ring-0 shadow-none appearance-none min-w-0 [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
                 />
               </div>
               <button

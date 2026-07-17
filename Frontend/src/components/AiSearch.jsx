@@ -235,14 +235,14 @@ export default function AiSearch() {
       {/* AI Search Input */}
       <div className="relative">
         <div
-          className="relative flex items-center gap-2 bg-white dark:bg-white/10 backdrop-blur-lg rounded-2xl p-1.5 shadow-lg border-2 transition-all duration-300"
+          className="relative flex items-center gap-2 bg-white dark:bg-white/10 backdrop-blur-lg rounded-2xl p-1.5 shadow-lg border-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-400/50 focus-within:ring-offset-2 focus-within:ring-offset-transparent"
           style={{
             borderColor: loading
               ? "rgba(99, 102, 241, 0.5)"
               : "rgba(0,0,0,0.08)",
           }}
         >
-          <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl bg-gray-50 dark:bg-white/5">
+          <div className="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl">
             <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-300 shrink-0 animate-pulse" />
             <input
               ref={inputRef}
@@ -252,7 +252,7 @@ export default function AiSearch() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
-              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/60 text-sm outline-none min-w-0 disabled:opacity-50"
+              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground/60 text-sm border-none outline-none ring-0 shadow-none appearance-none min-w-0 disabled:opacity-50 [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
             />
             {query && (
               <button
