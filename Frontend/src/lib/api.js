@@ -142,4 +142,9 @@ export const dashboardApi = {
   admin: () => api.get("/dashboard/admin").then((r) => r.data),
 };
 
+// ─── AI Search ───
+export const aiApi = {
+  search: (query) => api.post("/ai/search", { query }).then((r) => r.data),
+};
+
 export default api;

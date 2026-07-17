@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -12,10 +12,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Quote,
+  Sparkles,
 } from "lucide-react";
 import { propertyApi } from "../lib/api";
 import { useAuth } from "../hooks/use-auth";
 import { getDashboardBasePath } from "../lib/dashboard";
+import AiSearch from "../components/AiSearch";
 import logo from "../assets/logo.png";
 
 const POPULAR_CITIES = [
@@ -592,6 +594,22 @@ export default function HomePage() {
             </p>
             <ReviewCarousel />
           </div>
+        </div>
+      </section>
+
+      {/* ── AI Smart Search ── */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-background to-muted/20">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2 animate-fade-in-up">
+            <Sparkles className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-xl sm:text-2xl font-bold">
+              AI Smart Search
+            </h2>
+          </div>
+          <p className="text-muted-foreground text-xs sm:text-sm mb-6 animate-fade-in-up delay-200">
+            Describe your ideal PG in natural language and let AI find the best match for you
+          </p>
+          <AiSearch />
         </div>
       </section>
 
