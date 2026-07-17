@@ -19,27 +19,38 @@ import aiRoutes from "./routes/aiRoutes.js";
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+  "http://localhost:5173",
+   "https://nearstay-website.vercel.app", 
+];
+
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: function (origin, callback) {
+
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Error: Origin not allowed"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Handle CORS preflight requests (Express 5 requires explicit OPTIONS handling)
 app.use(cors(corsOptions));
 
 app.use(express.json());
-
-// Gzip compress responses to reduce payload size
 app.use(compression());
 
-// Test Route
+// Health Check
 app.get("/", (req, res) => {
   res.send("NearStay API is running");
 });
 
-// API Routes
+// Routes
 app.use("/api/auth", userRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/bookings", bookingRoutes);
