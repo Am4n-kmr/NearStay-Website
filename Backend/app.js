@@ -21,7 +21,8 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   "http://localhost:5173",
-   "https://nearstay-website.vercel.app", 
+  "https://nearstay-website.vercel.app",
+  "https://nearstay-website.onrender.com",
 ];
 
 const corsOptions = {
