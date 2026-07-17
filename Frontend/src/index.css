@@ -128,7 +128,7 @@
 
   body {
     font-family: var(--app-font-sans);
-    background-color: lightgoldenrodyellow;
+    background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     overscroll-behavior: none;
     letter-spacing: -0.005em;
