@@ -1,7 +1,17 @@
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
-
 dotenv.config();
 
-// Import server (which includes app and Socket.IO)
-import "./server.js";
+import connectDB from "./config/db.js";
+
+async function startServer() {
+  try {
+    await connectDB();
+
+    await import("./server.js");
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+startServer();

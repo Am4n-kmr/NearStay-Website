@@ -1,17 +1,15 @@
 import mongoose from "mongoose";
-import dns from "node:dns";
 
 const connectDB = async () => {
-    const uri = process.env.MONGO_URI;
-    if (!uri) {
-        throw new Error("MONGO_URI is not defined");
-    }
+  const uri = process.env.MONGO_URI;
 
-    dns.setServers(["8.8.8.8", "1.1.1.1"]);
-    console.log("MongoDB DNS servers:", dns.getServers());
+  if (!uri) {
+    throw new Error("MONGO_URI is not defined");
+  }
 
-    await mongoose.connect(uri);
-    console.log("MongoDB connected");
-}
+  await mongoose.connect(uri);
+
+  console.log("MongoDB connected");
+};
 
 export default connectDB;
